@@ -75,14 +75,22 @@ class PlayCoach {
     }
   }
 
-  void demonstrationFinished() => _activate(index + 1);
+  /// The guide light has finished. The same squares stay empty for the player.
+  void demonstrationFinished() {
+    if (phase != CoachPhase.demonstrating) return;
+    phase = CoachPhase.waitingForPlayer;
+    pointerVisible = false;
+    correction = '';
+  }
 
   /// True when [cells] may stay on the board.
   bool judge(List<int> cells) {
     if (phase == CoachPhase.practice || phase == CoachPhase.completed) {
       return true;
     }
-    if (!expectsMove || step.kind != GuideKind.perform) return false;
+    final guided =
+        step.kind == GuideKind.perform || step.kind == GuideKind.demonstrate;
+    if (!expectsMove || !guided) return false;
     if (step.orderedPrefix) {
       if (_same(cells, step.cells)) {
         phase = CoachPhase.successFeedback;
@@ -232,9 +240,9 @@ List<GuideStep> parcelGuide({
     number: number,
     pieces: pieces,
     introTitle: 'Cover the grid',
-    introBody: 'Each number is the size of its rectangle. Watch the first one.',
-    demoTitle: 'A matching rectangle',
-    demoBody: 'This rectangle has one number, and the number matches its size.',
+    introBody: 'Each number is the size of its rectangle. A light will show the first one.',
+    demoTitle: 'Watch the guide',
+    demoBody: 'The light shows the drag. It does not place the rectangle.',
     performTitle: 'Your turn',
     performBody: 'Drag the glowing squares into one rectangle.',
     practiceBody:
@@ -262,9 +270,10 @@ List<GuideStep> traceGuide({required int number, required List<int> solution}) {
       ),
       GuideStep(
         kind: GuideKind.demonstrate,
-        title: 'The opening steps',
-        body: 'The path visits these squares in order.',
+        title: 'Watch the guide',
+        body: 'The light follows the path. The squares stay empty.',
         cells: solution.sublist(0, cut),
+        orderedPrefix: true,
       ),
       GuideStep(
         kind: GuideKind.perform,
@@ -305,9 +314,9 @@ List<GuideStep> inkGuide({
     number: number,
     pieces: solution,
     introTitle: 'Each number owns a group',
-    introBody: 'A group is touching squares. It may bend. Watch the first one.',
-    demoTitle: 'One group',
-    demoBody: 'These squares touch, and the number matches the count.',
+    introBody: 'A group is touching squares. It may bend. A light will show the first one.',
+    demoTitle: 'Watch the guide',
+    demoBody: 'The light traces the group. It does not paint it.',
     performTitle: 'Your turn',
     performBody: 'Drag through the glowing squares, then let go.',
     practiceBody: 'Paint the glowing group, then finish the board yourself.',
@@ -322,9 +331,9 @@ List<GuideStep> threadGuide({
     number: number,
     pieces: solution,
     introTitle: 'Find the matching letters',
-    introBody: 'Join each letter to its twin. Lines do not cross. Watch the first one.',
-    demoTitle: 'One connection',
-    demoBody: 'This line joins a matching pair and stays on open squares.',
+    introBody: 'Join each letter to its twin. Lines do not cross. A light will show the first one.',
+    demoTitle: 'Watch the guide',
+    demoBody: 'The light joins the pair. It does not draw the line.',
     performTitle: 'Your turn',
     performBody: 'Drag from one glowing letter to its match.',
     practiceBody: 'Join the glowing pair, then connect the rest yourself.',

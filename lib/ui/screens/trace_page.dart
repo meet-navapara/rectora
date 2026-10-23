@@ -277,28 +277,22 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _maybeDemo() async {
+  void _maybeDemo() {
     final lesson = coach;
     if (lesson == null || lesson.phase != CoachPhase.demonstrating) return;
     if (_shownDemo == lesson.index) return;
     _shownDemo = lesson.index;
-    final motion = homeMotionEnabled(context);
-    for (final cell in lesson.step.cells) {
-      final issue = session.dragTo(cell);
-      if (issue != TraceIssue.ok) return;
-      if (motion) {
-        setState(() {});
-        await Future<void>.delayed(const Duration(milliseconds: 180));
-        if (!mounted || coach?.phase != CoachPhase.demonstrating) return;
-      }
+    if (!homeMotionEnabled(context)) _demoFinished();
+  }
+
+  void _demoFinished() {
+    final lesson = coach;
+    if (!mounted ||
+        lesson == null ||
+        lesson.phase != CoachPhase.demonstrating) {
+      return;
     }
-    if (!mounted) return;
     setState(() => lesson.demonstrationFinished());
-    await _persist();
-    if (session.isComplete) {
-      coach?.markSolved();
-      await _checkComplete();
-    }
   }
 
   Future<void> _checkComplete() async {
@@ -541,6 +535,8 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
                     rows: widget.level.puzzle.rows,
                     cols: widget.level.puzzle.cols,
                     cells: glow,
+                    travel: lesson?.phase == CoachPhase.demonstrating,
+                    onTravelEnd: _demoFinished,
                     showPointer:
                         lesson?.pointerVisible == true &&
                         lesson?.expectsMove == true,

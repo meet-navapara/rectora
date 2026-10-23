@@ -7,7 +7,7 @@ import 'package:rectora/domain/tutorial/coach.dart';
 import 'package:rectora/domain/tutorial/progress.dart';
 
 void main() {
-  test('the parcel lesson demonstrates a real rectangle, then waits', () {
+  test('the finger demo leaves the rectangle for the player', () {
     const puzzle = ParcelPuzzle(
       rows: 2,
       cols: 3,
@@ -23,30 +23,25 @@ void main() {
     coach.continuePressed();
     expect(coach.phase, CoachPhase.demonstrating);
     expect(coach.step.kind, GuideKind.demonstrate);
+    final shown = coach.step.cells;
 
     final session = ParcelSession(puzzle: puzzle, strictness: Strictness.basic);
-    final shown = rectFromCells(coach.step.cells, 3);
-    expect(session.commit(shown, rules: Strictness.basic), PlacementIssue.ok);
-    expect(session.placed, [shown]);
     coach.demonstrationFinished();
+    expect(session.placed, isEmpty);
     expect(coach.phase, CoachPhase.waitingForPlayer);
     expect(coach.locksInput, isFalse);
+    expect(coach.step.cells, shown);
 
-    final wrong = session.commit(
-      const GridRect(0, 0, 0, 0),
-      rules: Strictness.basic,
-    );
-    expect(wrong, isNot(PlacementIssue.ok));
     expect(coach.judge(rectCells(const GridRect(0, 1, 0, 1), 3)), isFalse);
     expect(coach.phase, CoachPhase.correctiveHint);
-
-    final second = rectFromCells(coach.step.cells, 3);
-    expect(session.commit(second, rules: Strictness.basic), PlacementIssue.ok);
-    expect(coach.judge(rectCells(second, 3)), isTrue);
+    coach.continuePressed();
+    expect(
+      session.commit(rectFromCells(shown, 3), rules: Strictness.basic),
+      PlacementIssue.ok,
+    );
+    expect(coach.judge(shown), isTrue);
     expect(coach.phase, CoachPhase.successFeedback);
-    expect(session.isComplete, isTrue);
-    coach.markSolved();
-    expect(coach.phase, CoachPhase.completed);
+    expect(session.placed, hasLength(1));
   });
 
   test('skipping a lesson does not record it as finished', () {

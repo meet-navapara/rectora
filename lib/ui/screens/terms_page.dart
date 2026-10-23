@@ -10,7 +10,7 @@ The game
 Rectora is a puzzle game with Parcels, Trace, Inks, and Threads. You may play as a guest or sign in with Google. An internet connection is required to open the game. Guest progress stays on the device. A Google sign-in can store a progress record in Firebase for that login.
 
 Your account
-If you use Google sign-in, you must follow Google’s account rules. Rectora may refuse a sign-in that Google or Firebase rejects. Removing the saved user record deletes the Firestore row for that login. It does not delete the Google account or the Firebase Authentication user.
+If you use Google sign-in, you must follow Google’s account rules. Rectora may refuse a sign-in that Google or Firebase rejects. Remove cloud data deletes the Firestore row for that login. It does not delete the Google account or the Firebase Authentication user.
 
 Acceptable use
 Do not break, overload, or misuse the sign-in or Firebase service, and do not try to read another player’s cloud record.

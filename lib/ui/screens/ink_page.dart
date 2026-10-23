@@ -401,36 +401,26 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _maybeDemo() async {
+  void _maybeDemo() {
     final lesson = coach;
     if (lesson == null || lesson.phase != CoachPhase.demonstrating) return;
     if (_shownDemo == lesson.index) return;
     _shownDemo = lesson.index;
-    final cells = lesson.step.cells;
-    if (homeMotionEnabled(context)) {
-      for (var i = 1; i <= cells.length; i++) {
-        setState(() {
-          draft
-            ..clear()
-            ..addAll(cells.sublist(0, i));
-          draftValid = true;
-        });
-        await Future<void>.delayed(const Duration(milliseconds: 160));
-        if (!mounted || coach?.phase != CoachPhase.demonstrating) return;
-      }
+    if (!homeMotionEnabled(context)) _demoFinished();
+  }
+
+  void _demoFinished() {
+    final lesson = coach;
+    if (!mounted ||
+        lesson == null ||
+        lesson.phase != CoachPhase.demonstrating) {
+      return;
     }
-    final issue = session.commit(cells);
-    if (!mounted || issue != InkIssue.ok) return;
     setState(() {
       draft.clear();
       draftValid = null;
       lesson.demonstrationFinished();
     });
-    await _persist();
-    if (session.isComplete) {
-      coach?.markSolved();
-      await _checkComplete();
-    }
   }
 
   @override
@@ -531,6 +521,8 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
                       rows: widget.level.puzzle.rows,
                       cols: widget.level.puzzle.cols,
                       cells: glow,
+                      travel: lesson?.phase == CoachPhase.demonstrating,
+                      onTravelEnd: _demoFinished,
                       showPointer:
                           lesson?.pointerVisible == true &&
                           lesson?.expectsMove == true,

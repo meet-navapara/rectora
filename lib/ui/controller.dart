@@ -555,7 +555,8 @@ class RectoraController extends ChangeNotifier {
     final deleted = await cloud.deleteAccount(_idToken!);
     syncBusy = false;
     if (!deleted) {
-      accountMessage = 'The saved user record could not be deleted. Progress on this device was kept.';
+      accountMessage =
+          'Cloud data could not be deleted. Progress on this device was kept.';
       accountMessageIsError = true;
       notifyListeners();
       return;
@@ -563,8 +564,7 @@ class RectoraController extends ChangeNotifier {
     _syncTimer?.cancel();
     save = save.copyWith(clearSync: true);
     syncPhase = SyncPhase.synced;
-    accountMessage =
-        'The saved user record was removed. This Google login is unchanged.';
+    accountMessage = 'Cloud data was removed. This Google login is unchanged. Puzzles on this phone were kept.';
     accountMessageIsError = false;
     await _persist(fromSync: true);
   }

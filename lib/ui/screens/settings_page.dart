@@ -152,46 +152,6 @@ class SettingsPage extends StatelessWidget {
               icon: const Icon(Icons.logout),
               label: const Text('Sign out'),
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: controller.syncBusy
-                  ? null
-                  : () async {
-                      if (!controller.cloud.configured) {
-                        await showRectoraDialog<bool>(
-                          context: context,
-                          title: 'Account deletion is not available',
-                          body: 'Deleting the cloud account needs the sync service, which is not set up for this build. Progress on this device was not deleted.',
-                          choices: const [
-                            DialogChoice(
-                              label: 'OK',
-                              value: true,
-                              primary: true,
-                            ),
-                          ],
-                        );
-                        return;
-                      }
-                      final choice = await showRectoraDialog<bool>(
-                        context: context,
-                        title: 'Remove the saved user record?',
-                        body: 'This removes the user row stored for this Google account. The Google login stays, so this same account can sign in again.',
-                        choices: const [
-                          DialogChoice(
-                            label: 'Remove record',
-                            value: true,
-                            primary: true,
-                          ),
-                          DialogChoice(label: 'Cancel', value: false),
-                        ],
-                      );
-                      if (choice == true) await controller.deleteAccount();
-                    },
-              child: Text(
-                'Remove saved user record',
-                style: TextStyle(color: palette.rose),
-              ),
-            ),
           ],
           if (controller.accountMessage != null) ...[
             const SizedBox(height: 8),
@@ -204,6 +164,21 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: palette.rose,
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              onPressed: () => _clearLocalData(context, controller),
+              child: const Text(
+                'Clear local data on this device',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
           const _Heading('Audio & feel'),
           _Panel(
             child: Column(
@@ -387,30 +362,67 @@ class SettingsPage extends StatelessWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Clear progress on this device'),
+            title: const Text('Remove cloud data'),
             subtitle: const Text(
-              'Deletes solved levels, drafts, and daily history on this phone. Settings and your display name stay.',
+              'Deletes the progress stored for this Google account. The Google login stays. Puzzles on this phone stay until you clear them.',
             ),
-            onTap: () async {
-              final choice = await showRectoraDialog<bool>(
-                context: context,
-                title: 'Clear progress on this device?',
-                body: 'Solved levels, streaks, and saved attempts on this phone will be removed. Settings and your display name stay. A cloud copy is not deleted. Syncing again can bring that copy back.',
-                choices: const [
-                  DialogChoice(
-                    label: 'Clear progress',
-                    value: true,
-                    primary: true,
-                  ),
-                  DialogChoice(label: 'Cancel', value: false),
-                ],
-              );
-              if (choice == true) await controller.clearProgress();
-            },
+            onTap: controller.syncBusy
+                ? null
+                : () => _removeCloudData(context, controller),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _clearLocalData(
+    BuildContext context,
+    RectoraController controller,
+  ) async {
+    final choice = await showRectoraDialog<bool>(
+      context: context,
+      title: 'Clear local data on this device?',
+      body: 'Solved levels, streaks, drafts, and lesson progress on this phone will be removed. Settings, your display name, and the Google login stay. Cloud data is not deleted. Syncing again can bring a cloud copy back.',
+      choices: const [
+        DialogChoice(label: 'Clear local data', value: true, primary: true),
+        DialogChoice(label: 'Cancel', value: false),
+      ],
+    );
+    if (choice == true) await controller.clearProgress();
+  }
+
+  Future<void> _removeCloudData(
+    BuildContext context,
+    RectoraController controller,
+  ) async {
+    if (controller.save.isGuest) {
+      await showRectoraDialog<bool>(
+        context: context,
+        title: 'Sign in to remove cloud data',
+        body: 'Cloud progress belongs to a Google account. Sign in with that account, then choose Remove cloud data again. Puzzles on this phone are not deleted.',
+        choices: const [DialogChoice(label: 'OK', value: true, primary: true)],
+      );
+      return;
+    }
+    if (!controller.cloud.configured) {
+      await showRectoraDialog<bool>(
+        context: context,
+        title: 'Cloud data cannot be removed',
+        body: 'This build has no cloud service. Progress on this phone was not deleted.',
+        choices: const [DialogChoice(label: 'OK', value: true, primary: true)],
+      );
+      return;
+    }
+    final choice = await showRectoraDialog<bool>(
+      context: context,
+      title: 'Remove cloud data?',
+      body: 'This deletes the progress stored in the cloud for this Google account. The Google login stays, so you can sign in again. Puzzles on this phone stay until you clear them.',
+      choices: const [
+        DialogChoice(label: 'Remove cloud data', value: true, primary: true),
+        DialogChoice(label: 'Cancel', value: false),
+      ],
+    );
+    if (choice == true) await controller.deleteAccount();
   }
 
   String _accountLines(RectoraController controller) {

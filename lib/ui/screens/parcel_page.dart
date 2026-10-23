@@ -567,36 +567,25 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _maybeDemo() async {
+  void _maybeDemo() {
     final lesson = coach;
     if (lesson == null || lesson.phase != CoachPhase.demonstrating) return;
     if (_shownDemo == lesson.index) return;
     _shownDemo = lesson.index;
-    final rect = rectFromCells(lesson.step.cells, widget.level.puzzle.cols);
-    if (homeMotionEnabled(context)) {
-      setState(() => preview = GridRect(rect.r1, rect.c1, rect.r1, rect.c1));
-      await Future<void>.delayed(const Duration(milliseconds: 280));
-      if (!mounted || coach?.phase != CoachPhase.demonstrating) return;
-      setState(() => preview = rect);
-      await Future<void>.delayed(const Duration(milliseconds: 420));
-      if (!mounted || coach?.phase != CoachPhase.demonstrating) return;
+    if (!homeMotionEnabled(context)) _demoFinished();
+  }
+
+  void _demoFinished() {
+    final lesson = coach;
+    if (!mounted ||
+        lesson == null ||
+        lesson.phase != CoachPhase.demonstrating) {
+      return;
     }
-    final issue = session.commit(
-      rect,
-      rules: Strictness.basic,
-      solveDeadEnds: false,
-    );
-    if (!mounted || issue != PlacementIssue.ok) return;
     setState(() {
       preview = null;
-      highlight = null;
       lesson.demonstrationFinished();
     });
-    await _persist();
-    if (session.isComplete) {
-      coach?.markSolved();
-      await _checkComplete();
-    }
   }
 
   Future<void> _restart() async {
@@ -775,6 +764,8 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
                       rows: widget.level.puzzle.rows,
                       cols: widget.level.puzzle.cols,
                       cells: glow,
+                      travel: lesson?.phase == CoachPhase.demonstrating,
+                      onTravelEnd: _demoFinished,
                       showPointer:
                           lesson?.pointerVisible == true &&
                           lesson?.expectsMove == true,

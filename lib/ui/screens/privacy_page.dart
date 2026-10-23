@@ -19,13 +19,13 @@ After sign-in, puzzle progress can be stored in Cloud Firestore under that Fireb
 
 Signing out returns this device to guest progress. The Google account’s solved puzzles stay with that login.
 
-Removing the saved user record deletes the Firestore user row and its progress document only after Firestore confirms the delete. It does not delete the Google account or the Firebase Authentication user. The same login can be used again. Guest progress on this device is kept. If the delete is not confirmed, Rectora does not say the record was removed.
+Settings includes Remove cloud data. That deletes the Firestore user row and its progress document only after Firestore confirms the delete. It does not delete the Google account or the Firebase Authentication user. The same login can be used again. Progress on this phone is kept. If the delete is not confirmed, Rectora does not say the cloud data was removed.
 
 Advertising
 Development builds request Google's sample test ads. The hint button stays free. An optional extra hint can play a rewarded test ad, and the hint is added only after Google confirms the reward. After several completed levels, a full-screen test ad may appear once the completion summary is closed. Lessons do not show that ad. If an ad cannot load, play continues. A production ad setup is not included until real ad units and a consent message are configured. Google's ad SDK can collect device and advertising information when an ad request is made.
 
 Other actions
-Clear progress on this device removes local puzzle history and does not by itself delete a cloud record. Uninstalling the app removes the local save.
+Clear local data on this device removes solved puzzles, drafts, streaks, and lesson progress stored on this phone. Settings, the display name, and the Google login stay. It does not delete a cloud record. Syncing again can bring a cloud copy back. Uninstalling the app removes the local save.
 
 The app requires an internet connection before play. It requests internet access for that check, sign-in, Firebase, and ads. It does not request contacts, location, camera, microphone, or SMS.
 
