@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rectora privacy policy</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <main>
+    <h1>Rectora privacy policy</h1>
+    <p>Effective 22 October 2026. This policy describes the Rectora Android app as it works today.</p>
+
+    <h2>Who this applies to</h2>
+    <p>Rectora can be played as a guest or with a Google account. An internet connection is required before play starts. The app does not ask you to state your age.</p>
+
+    <h2>Information stored on the device</h2>
+    <ul>
+      <li>A display name and avatar you choose.</li>
+      <li>Puzzle progress, drafts, statistics, tutorial status, and daily and weekly dates.</li>
+      <li>Settings such as theme, sound, haptics, and timer.</li>
+      <li>If you sign in, the Google account id, and the name and email Google returns. The sign-in token is kept in memory for that session and is not written into the save.</li>
+    </ul>
+    <p>Guest progress and each Google account’s progress are stored separately on the device. Android backup may include the local save. That backup is controlled by the device account, not by a Rectora server.</p>
+
+    <h2>Google sign-in and Firebase</h2>
+    <p>Continue with Google sends the sign-in to Google and then to Firebase Authentication in the Firebase project <code>com-rectora-rectora</code>. Rectora uses that sign-in to recognize the same player. Cancelling sign-in leaves the guest save unchanged.</p>
+    <p>After a successful sign-in, puzzle progress can be stored in Cloud Firestore at <code>users/{Firebase user id}</code>, including a progress document under that user. Firestore rules allow that user to read and write only their own documents. Rectora does not ship a separate analytics or crash-reporting SDK.</p>
+
+    <h2>Removing a saved user record</h2>
+    <p>Settings can remove the Firestore user row and the progress document stored for the signed-in player. That action does not delete the Google account and does not delete the Firebase Authentication user. The same Google login can be used again. Guest progress on the device is kept.</p>
+    <p>Clearing local progress, clearing app data, or uninstalling the app removes the save stored on the device. Those actions do not by themselves delete a Firestore row.</p>
+
+    <h2>Advertising</h2>
+    <p>The current build requests Google’s published sample test ads. The ordinary hint stays free. An optional extra hint can show a rewarded test ad, and the hint is added only after Google reports that the reward was earned. After several completed levels, a full-screen test ad may appear. Lessons do not show that ad. If an ad cannot load, play continues.</p>
+    <p>These are test ad units, not a production AdMob setup. When an ad request runs, Google’s ad SDK can collect device and advertising information under Google’s own policy. A child-directed treatment is not configured. Do not ship this build to the public as a production ads app.</p>
+
+    <h2>Permissions</h2>
+    <p>The app requests internet access so the connection check, Google sign-in, Firebase, and ad requests can run. It does not request contacts, location, camera, microphone, or SMS.</p>
+
+    <h2>Contact</h2>
+    <p>Use the support address on the Google Play listing for this app. This policy does not invent a private email address.</p>
+    <p><a href="/terms">Terms and conditions</a></p>
+  </main>
+</body>
+</html>

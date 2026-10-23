@@ -1,0 +1,47 @@
+{
+    "project_info": {
+      "project_number": "939327556901",
+      "project_id": "com-rectora-rectora",
+      "storage_bucket": "com-rectora-rectora.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:939327556901:android:8d96d042b7b1626436decc",
+          "android_client_info": {
+            "package_name": "com.rectora.rectora"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "939327556901-nat9mfgu6mkihj72tfed1qpdifckchod.apps.googleusercontent.com",
+            "client_type": 1,
+            "android_info": {
+              "package_name": "com.rectora.rectora",
+              "certificate_hash": "270dd6197d729efc4dc2d2ecb1794e7cce167018"
+            }
+          },
+          {
+            "client_id": "939327556901-2tnuurkj8ao8t2gssac8ckgar8lutbpn.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyBQEmWwY7IQhW6X3E7LlXR_LnhpaBvM01o"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "939327556901-2tnuurkj8ao8t2gssac8ckgar8lutbpn.apps.googleusercontent.com",
+                "client_type": 3
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }

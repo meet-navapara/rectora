@@ -1,0 +1,16 @@
+body {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  background: #f7f4ef;
+  color: #1c1915;
+}
+main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+a { color: #6b3f1f; }
+h1, h2 { font-family: "Segoe UI", sans-serif; }
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.15rem; margin-top: 1.6rem; }
+p, li { line-height: 1.5; }
