@@ -3,6 +3,7 @@ import 'package:rectora/domain/campaign/records.dart';
 import 'package:rectora/domain/parcels/models.dart';
 import 'package:rectora/domain/profile/profile.dart';
 import 'package:rectora/domain/progression/relics.dart';
+import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/scope.dart';
 import 'package:rectora/ui/screens/gallery_page.dart';
@@ -115,20 +116,39 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 20),
-          Text('Level ${controller.save.xp ~/ 40 + 1}'),
-          Text('${controller.save.xp} mastery points'),
-          Text('${stats.parcelsSolved} parcels solved'),
-          Text('${stats.tracesSolved} traces · ${stats.inksSolved} inks'),
-          Text('${stats.threadsSolved} threads solved'),
-          Text('Highest ${_highest(stats.solvedByDifficulty)}'),
-          Text('Favorite ${_favorite(stats)}'),
-          Text(
-            'Best parcel ${stats.bestParcelMs == null ? '—' : '${stats.bestParcelMs! ~/ 1000}s'}',
-          ),
-          Text('Streak ${stats.currentStreak}'),
-          Text('Style ${controller.save.settings.boardStyle}'),
-          Text(
-            '${controller.achievements.where((item) => item.earned).length} of ${controller.achievements.length} achievements',
+          Material(
+            color: palette.surface,
+            borderRadius: BorderRadius.circular(18),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+              child: Column(
+                children: [
+                  _Row('Level', '${controller.save.xp ~/ 40 + 1}'),
+                  _Row('Mastery points', '${controller.save.xp}'),
+                  _Row('Parcels solved', '${stats.parcelsSolved}'),
+                  _Row('Trace solved', '${stats.tracesSolved}'),
+                  _Row('Inks solved', '${stats.inksSolved}'),
+                  _Row('Threads solved', '${stats.threadsSolved}'),
+                  _Row('Hardest solved', _highest(stats.solvedByDifficulty)),
+                  _Row('Favorite mode', _favorite(stats)),
+                  _Row(
+                    'Best parcel time',
+                    stats.bestParcelMs == null
+                        ? '—'
+                        : clockText(stats.bestParcelMs!),
+                  ),
+                  _Row('Daily streak', '${stats.currentStreak}'),
+                  _Row(
+                    'Board style',
+                    _styleName(controller.save.settings.boardStyle),
+                  ),
+                  _Row(
+                    'Achievements',
+                    '${controller.achievements.where((item) => item.earned).length} of ${controller.achievements.length}',
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           FilledButton(
@@ -141,6 +161,33 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
+
+class _Row extends StatelessWidget {
+  const _Row(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          Text(value, style: Theme.of(context).textTheme.titleSmall),
+        ],
+      ),
+    );
+  }
+}
+
+String _styleName(String id) {
+  for (final style in boardStyles) {
+    if (style.id == id) return style.title;
+  }
+  return boardStyles.first.title;
 }
 
 String _highest(Map<Difficulty, int> counts) {

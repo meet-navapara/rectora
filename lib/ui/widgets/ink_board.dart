@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rectora/domain/ink/engine.dart';
 import 'package:rectora/theme/palette.dart';
+import 'package:rectora/ui/scope.dart';
 
 class InkBoard extends StatelessWidget {
   const InkBoard({
@@ -42,7 +43,10 @@ class InkBoard extends StatelessWidget {
                     regions: regions,
                     draft: draft,
                     draftValid: draftValid,
-                    palette: RectoraTheme.of(context),
+                    palette: RectoraTheme.of(context).forBoard(
+                      RectoraScope.of(context).save.settings.boardStyle,
+                      RectoraScope.of(context).save.xp,
+                    ),
                     cell: unit,
                   ),
                 ),

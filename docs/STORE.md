@@ -1,46 +1,57 @@
-# Store readiness
+# Play Console checklist
 
-This is a checklist for a developer with console access. It is not a statement that Google Play or the App Store will approve the app.
-
-Official references:
-
-- Google Play Developer Program Policies: https://support.google.com/googleplay/android-developer/
-- Apple App Review Guidelines: https://developer.apple.com/app-store/review/guidelines/
-- Apple privacy information: https://developer.apple.com/app-store/app-privacy-details/
+This is a checklist for the developer with console access. It does not promise approval.
 
 ## Identity
 
 - App name: Rectora
-- Android application id: `com.rectora.rectora`
-- Version in `pubspec.yaml`: 1.0.0+1
-- Category: logic puzzle. No accounts, no purchases, no ads.
-- Audience: general. The rules are suitable for all ages. Confirm the questionnaire in each console; do not assume an automatic rating.
+- Application id: `com.rectora.rectora`
+- Category: Games, Puzzle
+- minSdk 24, targetSdk 36
 
-## Android
+## Store listing
 
-- Flutter's current default compile SDK and target SDK are 36, which matches the Play requirement that new apps target API 36.
-- `minSdk` is Flutter's default (24 on this SDK).
-- Release signing is not configured. Create a keystore locally, copy `android/key.properties.example` to `android/key.properties`, and build again. Do not commit either file.
-- The local `flutter build apk --release` output is signed with the debug key until that file exists. Play requires an upload key.
-- Host the privacy policy at a public URL before submitting. The text is in `docs/PRIVACY_POLICY.md`.
-- Data safety: the app does not transmit player data and does not include ads or analytics SDKs. The optional display name and progress remain on device. Android backup can include that local save if the user has device backup enabled. Declare that according to the console questions after reading the merged release manifest. Do not answer "no data stored" if the console asks about data stored on device.
-- Debug and profile manifests include `INTERNET` for Flutter tooling. Confirm the release merged manifest does not.
-- Provide a support email, screenshots from a phone, a feature graphic, and the content-rating questionnaire in Play Console.
-- No in-app purchases and no advertising consent form are required for this build.
+- Short and full description
+- 512 x 512 icon: `docs/store/icon-512.png`
+- 1024 x 500 feature graphic: `docs/store/feature-graphic-1024x500.png`
+- At least two phone screenshots
+- Developer website: `https://com-rectora-rectora.web.app`, which AdMob reads `app-ads.txt` from
+- Support email
+- Privacy policy: `https://com-rectora-rectora.web.app/privacy`
 
-## iOS
+## App content answers
 
-- The Xcode project exists and the display name is Rectora. A release archive was not built here because this workspace is on Windows.
-- On a Mac, open `ios/Runner.xcworkspace`, set a development team, and archive with Xcode.
-- App Privacy: data is not collected by the developer and is not used for tracking. The optional display name stays on device. iCloud backup may include the app container if the user enables device backup.
-- No account means the account-deletion requirement is not triggered by a Rectora account.
-- Confirm the privacy nutrition labels against the archived app's linked SDKs (`shared_preferences` and `audioplayers` only).
+These match what the app does today. Check them again against the console's current wording.
 
-## Not done from this workspace
+- Ads: yes, once real ad units are compiled in.
+- App access: all features are available without an account, as a guest.
+- Target audience: 13 and over. The ad SDK collects device data, and no child-directed setting is configured, so do not select younger age groups.
+- Content rating: complete the questionnaire. The game has no violence, chat, or user-generated content.
+- Advertising ID: yes, used for advertising. The merged manifest includes `AD_ID`.
+- Account deletion URL: `https://com-rectora-rectora.web.app/delete-account`
 
-- Play Console and App Store Connect listings
-- A real upload keystore and its passwords
-- A hosted privacy-policy URL
-- Store screenshots from a physical phone
-- An iOS archive
-- A promise of store approval
+## Data safety answers
+
+- Encrypted in transit: yes.
+- Deletion: yes, in the app and at the URL above.
+- Name and email address: collected when a player signs in with Google. Used for account management. Optional.
+- Game progress (app activity): collected when signed in. Used for app functionality. Optional.
+- User IDs (Firebase uid and Google account id): collected when signed in. Used for account management. Optional.
+- Device or other IDs: collected by the AdMob SDK. Used for advertising. Shared with Google, as Google's SDK documentation describes.
+- App interactions and diagnostics collected by the AdMob SDK: confirm against Google's current Data safety guidance for the Mobile Ads SDK.
+
+## Testing
+
+Personal developer accounts created after 13 November 2023 need at least 12 testers opted in continuously for the 14 days before applying for production access. Check the current numbers in Play Console.
+
+## AdMob
+
+Add `hosting/app-ads.txt` with the line AdMob gives you, deploy hosting, then choose Verify app in the app's AdMob settings. The app cannot fully serve ads until it passes verification and the readiness review.
+
+## Before each upload
+
+1. `flutter analyze` and `flutter test`
+2. Build the bundle as in `docs/RELEASE.md`
+3. Install a release build on a real phone, then open and finish a level in all four modes
+4. Sign in with Google on a build from the Play internal test track, which proves the Play signing SHA-1
+5. Deploy hosting if a policy page changed

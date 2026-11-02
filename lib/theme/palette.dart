@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rectora/domain/progression/rewards.dart';
 
 @immutable
 class RectoraPalette {
@@ -67,6 +68,39 @@ class RectoraPalette {
     grid: Color(0xFFE7DDD0),
     emptyCell: Color(0xFFF7F1E8),
   );
+
+  static final _styled = <(Brightness, String), RectoraPalette>{};
+
+  /// This palette with the empty cells tinted for an unlocked board style.
+  /// Kept per style, so a board repaints only when the style really changes.
+  RectoraPalette forBoard(String style, int xp) {
+    final tint = switch (style) {
+      'ivory' => const Color(0xFFF3E6C8),
+      'pine' => pine,
+      'archive' => const Color(0xFFD6B15E),
+      _ => null,
+    };
+    if (tint == null || !styleUnlocked(xp, style)) return this;
+    return _styled.putIfAbsent((brightness, style), () {
+      Color mix(Color base) => Color.lerp(base, tint, 0.2)!;
+      return RectoraPalette(
+        brightness: brightness,
+        background: background,
+        backgroundAlt: backgroundAlt,
+        surface: surface,
+        surfaceHigh: mix(surfaceHigh),
+        line: line,
+        ink: ink,
+        muted: muted,
+        copper: copper,
+        copperInk: copperInk,
+        pine: pine,
+        rose: rose,
+        grid: grid,
+        emptyCell: mix(emptyCell),
+      );
+    });
+  }
 }
 
 class RectoraTheme extends ThemeExtension<RectoraTheme> {

@@ -4,6 +4,7 @@ import 'package:rectora/domain/daily/streak.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/scope.dart';
 import 'package:rectora/ui/screens/parcel_page.dart';
+import 'package:rectora/ui/widgets/ad_banner.dart';
 import 'package:rectora/ui/widgets/dialogs.dart';
 
 class DailyPage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _DailyPageState extends State<DailyPage> {
     ).isBefore(DateTime(today.year, today.month + 1));
     return Scaffold(
       backgroundColor: palette.background,
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: const Text('Daily'),
         backgroundColor: palette.background,
@@ -50,7 +52,7 @@ class _DailyPageState extends State<DailyPage> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
           Text(
-            'The same local date always selects the same puzzle from the built-in schedule rectora-daily-v1. It is not coordinated by a server. A missed day ends the streak; playing an older day extends it only when that day connects to today or yesterday.',
+            'One puzzle for each day. Solve days in a row to build a streak. A missed day ends it, but you can go back and play a missed day to fill the gap.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
@@ -62,9 +64,12 @@ class _DailyPageState extends State<DailyPage> {
             children: [
               IconButton(
                 tooltip: 'Previous month',
-                onPressed: () => setState(() {
-                  month = DateTime(month.year, month.month - 1);
-                }),
+                // The schedule starts in January 2026.
+                onPressed: month.isAfter(DateTime(2026))
+                    ? () => setState(() {
+                        month = DateTime(month.year, month.month - 1);
+                      })
+                    : null,
                 icon: const Icon(Icons.chevron_left),
               ),
               Expanded(

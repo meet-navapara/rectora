@@ -1,13 +1,13 @@
 # Rectora
 
-Rectora is an offline logic-puzzle game with four modes.
+Rectora is a logic-puzzle game with four modes.
 
 - Parcels covers the board with rectangles. Each rectangle contains one number, and its area equals that number.
 - Trace draws one orthogonal path through numbered checkpoints in order and covers every open cell.
 - Inks fills the board with connected regions that do not have to be rectangles. Each region contains one number, and its size equals that number.
 - Threads joins matching letters with orthogonal paths that do not cross and covers every open cell.
 
-The game does not use an account, advertising, or analytics. Progress stays in local storage on the device.
+Players can use a guest save on the device or sign in with Google to sync through Firebase. The app needs a connection to open, and it can show AdMob ads. It has no analytics SDK.
 
 ## Run locally
 
@@ -19,7 +19,7 @@ flutter pub get
 flutter run
 ```
 
-`flutter run` uses a debug build. The debug Android manifest adds `INTERNET` so the Flutter tool can hot reload. The release manifest does not.
+`flutter run` uses a debug build, which requests Google's sample ads.
 
 ## Tests and release build
 
@@ -32,7 +32,7 @@ flutter build apk --release
 
 The release APK is written to `build\app\outputs\flutter-apk\app-release.apk`.
 
-Until `android\key.properties` exists, that APK is signed with the debug key. It is useful for local installation and is not a Play Store upload. Copy `android\key.properties.example` to `android\key.properties`, point it at a keystore you create yourself, and do not commit the keystore or the real properties file.
+Until `android\key.properties` exists, that APK is signed with the debug key. It is useful for local installation only. A Play bundle refuses to build without that file. See `docs\RELEASE.md`.
 
 Install the local release build with a device connected:
 
@@ -50,22 +50,23 @@ An iOS release build needs Xcode on macOS. It was not produced on this Windows m
 
 ## Content
 
-- 520 parcel campaign levels in `assets\levels\parcels.json`, shown as 10 chapters
-- 52 trace campaign levels in `assets\levels\traces.json`
-- 53 inks campaign levels in `assets\levels\inks.json`
-- 72 thread campaign levels in `assets\levels\threads.json`
-- 120 local daily puzzles in `assets\levels\daily.json`
+- 500 levels in each of Parcels, Trace, Inks, and Threads, in 10 chapters of 50
+- 120 daily puzzles in `assets\levels\daily.json`
 - Schedule id `rectora-daily-v1`, epoch 2026-01-01
 
-Trace and Inks are the first validated campaign. `tool/generate_modes.dart` builds more of those two modes. It keeps a board only when the solver finds exactly one solution.
+Levels open in order, and measured difficulty never falls from one level to the next. No board repeats another after a rotation or mirror. Each puzzle has exactly one solution, one free hint, and no help refusing a legal move. Each mode allows three unsolved skips at a time.
 
 `flutter test` re-solves every shipped puzzle and requires exactly one solution. The app itself only checks that each stored solution covers the board, so startup does not re-run the solver.
 
-Regenerate catalogs with:
+Rebuild the catalogs in two steps. Repeat `generate` with a new seed to widen the choice.
 
 ```powershell
-dart run tool/generate_campaign.dart
-dart run tool/generate_modes.dart
+dart run tool/build_campaign.dart generate parcels 2 1
+dart run tool/build_campaign.dart generate traces 2 1
+dart run tool/build_campaign.dart generate inks 2 1
+dart run tool/build_campaign.dart generate threads 2 1
+dart run tool/build_campaign.dart generate daily 1 1
+dart run tool/build_campaign.dart assemble
 ```
 
 Regenerate icons and tones with:
@@ -78,4 +79,5 @@ dart run tool/write_assets.dart
 
 - Architecture: `docs\ARCHITECTURE.md`
 - Privacy: `docs\PRIVACY_POLICY.md` and Settings → Privacy in the app
+- Release steps: `docs\RELEASE.md`
 - Store checklist: `docs\STORE.md`

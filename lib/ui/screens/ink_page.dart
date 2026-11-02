@@ -6,6 +6,7 @@ import 'package:rectora/domain/campaign/save_game.dart';
 import 'package:rectora/domain/ink/engine.dart';
 import 'package:rectora/domain/tutorial/coach.dart';
 import 'package:rectora/domain/parcels/models.dart';
+import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/domain/work/background.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/coach/guide_view.dart';
@@ -229,6 +230,8 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
     clockLive = false;
     _bank();
     final controller = RectoraScope.read(context);
+    final xpBefore = controller.save.xp;
+    final replay = controller.save.inkRecords[widget.level.id]?.solved == true;
     final record = await controller.finishLevel(
       id: widget.level.id,
       mode: PlayMode.ink,
@@ -245,9 +248,14 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
     final choice = await showRectoraDialog<String>(
       context: context,
       title: 'Board covered',
-      body: record.perfect
-          ? 'Every region matches its number, and no hint was used.'
-          : 'The regions cover every cell without overlap.',
+      body: completionBody(
+        time: clockText(elapsedMs),
+        hints: session.hintsUsed,
+        difficulty: widget.level.difficulty,
+        xpGained: controller.save.xp - xpBefore,
+        bestMs: record.bestMs,
+        replay: replay,
+      ),
       choices: const [
         DialogChoice(label: 'Next', value: 'next', primary: true),
         DialogChoice(label: 'Replay', value: 'replay'),
@@ -290,6 +298,7 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
 
   Future<void> _hint() async {
     if (busy) return;
+    if (!await claimHint(context, session.hintsUsed) || !mounted) return;
     busy = true;
     final InkHint hint;
     try {
@@ -332,11 +341,22 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
     await _checkComplete();
   }
 
+  Future<void> _restartFromSettings() async {
+    setState(() {
+      session.restart();
+      draft.clear();
+      draftValid = null;
+      notice = null;
+    });
+    await _persist();
+  }
+
   Future<void> _skip() async {
+    if (!await allowSkip(context, PlayMode.ink) || !mounted) return;
     final choice = await showRectoraDialog<bool>(
       context: context,
       title: 'Skip this board?',
-      body: 'Skipping unlocks the next Inks puzzle. It does not count as a solve, and it does not play an ad.',
+      body: 'Skipping unlocks the next level but does not count as a solve. Each mode can have three skipped levels at a time.',
       choices: const [
         DialogChoice(label: 'Skip', value: true, primary: true),
         DialogChoice(label: 'Cancel', value: false),
@@ -471,7 +491,6 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
                       gestures: 'Drag through squares that share a side. The group may bend. Tap a finished group to remove it.',
                       mistakes: 'Match the number, keep one number in each group, and do not overlap.',
                       lesson: inkTutorial,
-                      onBonusHint: _hint,
                     ),
                     icon: const Icon(Icons.help_outline),
                   ),
@@ -479,7 +498,10 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
                     tooltip: 'Settings',
                     onPressed: () => pushSoft(
                       context,
-                      SettingsPage(activeLevelId: widget.level.id),
+                      SettingsPage(
+                        activeLevelId: widget.level.id,
+                        onResetLevel: _restartFromSettings,
+                      ),
                     ),
                     icon: const Icon(Icons.settings_outlined),
                   ),

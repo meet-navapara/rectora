@@ -19,6 +19,15 @@ if (hasReleaseKeystore) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// Play rejects a debug-signed bundle, so fail here instead of at upload.
+if (!hasReleaseKeystore &&
+    gradle.startParameter.taskNames.any { it.contains("bundleRelease", ignoreCase = true) }
+) {
+    throw GradleException(
+        "A Play bundle needs android/key.properties. See docs/RELEASE.md.",
+    )
+}
+
 android {
     namespace = "com.rectora.rectora"
     compileSdk = flutter.compileSdkVersion
@@ -60,6 +69,10 @@ android {
 
     buildTypes {
         release {
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             // Play upload signing needs android/key.properties, which is gitignored.
             // Local release builds use the debug key until that file exists.
             signingConfig = if (hasReleaseKeystore) {

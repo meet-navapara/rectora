@@ -81,8 +81,9 @@ class HeroWorldPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4;
     final fill = Paint()..color = palette.copper.withValues(alpha: 0.28);
-    final cell = math.min(size.width, size.height) / 7;
-    final origin = Offset(size.width * 0.46, size.height * 0.16);
+    // Stays in the right half so it never runs under the text on the left.
+    final cell = math.min(size.width * 0.42 / 5, size.height / 7);
+    final origin = Offset(size.width * 0.56, size.height * 0.16);
     for (var row = 0; row < 4; row++) {
       for (var col = 0; col < 5; col++) {
         final rect = Rect.fromLTWH(
@@ -101,13 +102,14 @@ class HeroWorldPainter extends CustomPainter {
     _block(canvas, origin, cell, 0, 2, 1, 3, fill, line);
     _block(canvas, origin, cell, 2, 2, 2, 2, fill, line);
 
+    final lamp = Offset(origin.dx + cell * 4.4, size.height * 0.86);
     final path = Path()
-      ..moveTo(origin.dx + cell * 0.5, origin.dy + cell * 4.4)
+      ..moveTo(origin.dx + cell * 0.5, origin.dy + cell * 4.2)
       ..quadraticBezierTo(
-        size.width * 0.2,
-        size.height * 0.72,
-        size.width * 0.18,
-        size.height * 0.42,
+        origin.dx + cell * 1.5,
+        size.height * 0.9,
+        lamp.dx,
+        lamp.dy,
       );
     canvas.drawPath(
       path,
@@ -118,7 +120,6 @@ class HeroWorldPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
     final pulse = 5 + glow * 3;
-    final lamp = Offset(size.width * 0.18, size.height * 0.42);
     canvas.drawCircle(
       lamp,
       pulse * 3,
@@ -553,7 +554,12 @@ void _label(Canvas canvas, Offset at, String text, Color color) {
   final painter = TextPainter(
     text: TextSpan(
       text: text,
-      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800),
+      style: TextStyle(
+        fontFamily: 'Roboto',
+        color: color,
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
+      ),
     ),
     textDirection: TextDirection.ltr,
   )..layout();

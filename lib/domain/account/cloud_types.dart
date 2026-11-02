@@ -50,6 +50,7 @@ abstract class ProgressCloud {
     required int baseRevision,
   });
 
-  /// True only when the server confirms the account record is gone.
+  /// Deletes the stored progress and the account behind it. True only when the
+  /// server confirms both are gone.
   Future<bool> deleteAccount(String idToken);
 }

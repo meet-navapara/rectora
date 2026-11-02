@@ -79,7 +79,7 @@ class HelpPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'The hint button shows a step the puzzle requires. It is free. Help can offer one more hint after a test ad, and that ad can be cancelled. The first two levels of each mode show one move, then ask you to make the next one. Replay them here. Skip does not finish the lesson, does not clear solved puzzles, and does not show an ad.',
+            'Each puzzle has one free hint. If this build shows ads, a short ad can give you another. Levels open in order, and they get harder as you go. Each mode can have three skipped levels at a time, and solving one gives the skip back. The first two levels of each mode show one move, then ask you to make the next one. Replay them here.',
           ),
         ],
       ),

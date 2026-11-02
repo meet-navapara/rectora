@@ -9,7 +9,7 @@
 <body>
   <main>
     <h1>Rectora privacy policy</h1>
-    <p>Effective 22 October 2026. This policy describes the Rectora Android app as it works today.</p>
+    <p>Effective 30 October 2026. This policy describes the Rectora Android app as it works today.</p>
 
     <h2>Who this applies to</h2>
     <p>Rectora can be played as a guest or with a Google account. An internet connection is required before play starts. The app does not ask you to state your age.</p>
@@ -27,13 +27,16 @@
     <p>Continue with Google sends the sign-in to Google and then to Firebase Authentication in the Firebase project <code>com-rectora-rectora</code>. Rectora uses that sign-in to recognize the same player. Cancelling sign-in leaves the guest save unchanged.</p>
     <p>After a successful sign-in, puzzle progress can be stored in Cloud Firestore at <code>users/{Firebase user id}</code>, including a progress document under that user. Firestore rules allow that user to read and write only their own documents. Rectora does not ship a separate analytics or crash-reporting SDK.</p>
 
-    <h2>Removing a saved user record</h2>
-    <p>Settings can remove the Firestore user row and the progress document stored for the signed-in player. That action does not delete the Google account and does not delete the Firebase Authentication user. The same Google login can be used again. Guest progress on the device is kept.</p>
-    <p>Clearing local progress, clearing app data, or uninstalling the app removes the save stored on the device. Those actions do not by themselves delete a Firestore row.</p>
+    <h2>Deleting your account</h2>
+    <p>Delete account in Settings permanently deletes your Firebase Authentication user, your Firestore progress, and the progress saved for that account on the device. It does not delete your Google account. Guest progress on the device is kept. <a href="/delete-account">Other ways to request deletion</a>.</p>
+    <p>Clearing local progress, clearing app data, or uninstalling the app removes the save stored on the device. Those actions do not by themselves delete your account.</p>
 
     <h2>Advertising</h2>
-    <p>The current build requests Google’s published sample test ads. The ordinary hint stays free. An optional extra hint can show a rewarded test ad, and the hint is added only after Google reports that the reward was earned. After several completed levels, a full-screen test ad may appear. Lessons do not show that ad. If an ad cannot load, play continues.</p>
-    <p>These are test ad units, not a production AdMob setup. When an ad request runs, Google’s ad SDK can collect device and advertising information under Google’s own policy. A child-directed treatment is not configured. Do not ship this build to the public as a production ads app.</p>
+    <p>Rectora can show ads from Google AdMob. The ordinary hint stays free. An optional extra hint can show a rewarded ad, and the hint is added only after Google reports that the reward was earned. After several completed levels, a full-screen ad may appear. Banner ads can appear on chapter and calendar screens, not on puzzle boards. Lessons do not show that ad. If an ad cannot load, play continues.</p>
+    <p>When an ad request runs, Google’s ad SDK can collect device identifiers, including the advertising ID, and advertising information under <a href="https://policies.google.com/technologies/partner-sites">Google’s own policy</a>. Where the law requires it, Rectora asks for consent first, and Settings lets you change that choice.</p>
+
+    <h2>Children</h2>
+    <p>Rectora is not directed at children under 13 and does not knowingly collect their personal information.</p>
 
     <h2>Permissions</h2>
     <p>The app requests internet access so the connection check, Google sign-in, Firebase, and ad requests can run. It does not request contacts, location, camera, microphone, or SMS.</p>

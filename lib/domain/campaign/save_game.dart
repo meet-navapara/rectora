@@ -249,6 +249,16 @@ class SaveGame {
 
   SaveGame signOut() => activateIdentity(kind: 'guest', entered: false);
 
+  /// Signs out and drops the progress parked for this account, so a deleted
+  /// account leaves nothing on the device. Guest progress is not touched.
+  SaveGame deleteIdentity() {
+    final key = identityKey;
+    final next = signOut();
+    return next.copyWith(
+      shelves: Map<String, String>.from(next.shelves)..remove(key),
+    );
+  }
+
   static String identityKeyFor(String kind, String? playerId) {
     if ((kind == 'google' || kind == 'playGames') &&
         playerId != null &&
@@ -434,6 +444,18 @@ class SaveGame {
       PlayMode.trace => traceRecords,
       PlayMode.ink => inkRecords,
     };
+  }
+
+  /// Skips this mode can still use. Solving a skipped level gives one back.
+  int skipsLeft(PlayMode mode) {
+    final open = recordsFor(mode).entries.where(
+      (entry) =>
+          !entry.key.startsWith('daily@') &&
+          !entry.key.startsWith('weekly@') &&
+          entry.value.skipped &&
+          !entry.value.solved,
+    );
+    return skipAllowance - open.length;
   }
 
   bool unlocked(PlayMode mode, List<String> orderedIds, String id) {

@@ -245,19 +245,39 @@ void main() {
     expect(controller.save.parcelRecords['parcel-001']!.solved, isTrue);
   });
 
-  test('removing the saved user record keeps the Google login', () async {
+  test('deleting the account signs out and leaves no account data', () async {
+    final cloud = MemoryCloud();
+    final controller = await _open(
+      auth: ScriptAuth(_identity),
+      cloud: cloud,
+      initial: _solved('parcel-001'),
+    );
+    await controller.signInWithGoogle();
+    await controller.finishLevel(
+      id: 'parcel-002',
+      skipped: false,
+      hintsUsed: 0,
+      elapsedMs: 1000,
+    );
+    await controller.deleteAccount();
+    expect(cloud.payload, isNull);
+    expect(controller.save.isGuest, isTrue);
+    expect(controller.save.accountEmail, isNull);
+    expect(controller.accountMessage, contains('were deleted'));
+    expect(controller.save.shelves.keys, isNot(contains('google:google-1')));
+    // Guest progress is separate from the account and stays.
+    expect(controller.save.parcelRecords['parcel-001']!.solved, isTrue);
+    expect(controller.save.parcelRecords.containsKey('parcel-002'), isFalse);
+  });
+
+  test('continue moves past a finished parcel', () async {
     final controller = await _open(
       auth: ScriptAuth(_identity),
       cloud: MemoryCloud(),
       initial: _solved('parcel-001'),
     );
-    await controller.signInWithGoogle();
-    await controller.deleteAccount();
-    expect(controller.save.isGoogle, isTrue);
-    expect(controller.save.accountPlayerId, 'google-1');
-    expect(controller.accountMessage, contains('login is unchanged'));
-    await controller.signOutAccount();
-    expect(controller.save.parcelRecords['parcel-001']!.solved, isTrue);
+    await controller.remember('parcel-001');
+    expect(controller.continueParcelId(), isNot('parcel-001'));
   });
 }
 

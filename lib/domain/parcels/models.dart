@@ -4,20 +4,9 @@ enum Difficulty { beginner, easy, medium, hard, expert, master, grandmaster }
 
 enum Strictness { basic, forward, solvable }
 
-Strictness strictnessFor(Difficulty difficulty) {
-  switch (difficulty) {
-    case Difficulty.beginner:
-    case Difficulty.easy:
-      return Strictness.basic;
-    case Difficulty.medium:
-      return Strictness.forward;
-    case Difficulty.hard:
-    case Difficulty.expert:
-    case Difficulty.master:
-    case Difficulty.grandmaster:
-      return Strictness.solvable;
-  }
-}
+/// Every tier uses the plain rules. Refusing a legal move because it leads
+/// nowhere would tell the player which moves are right.
+Strictness strictnessFor(Difficulty difficulty) => Strictness.basic;
 
 extension DifficultyLabel on Difficulty {
   String get label {

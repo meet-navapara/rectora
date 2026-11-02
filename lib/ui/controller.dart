@@ -134,11 +134,17 @@ class RectoraController extends ChangeNotifier {
 
   String continueParcelId() {
     final last = save.lastPlayed;
-    if (last != null && catalog.parcelById(last) != null) return last;
-    for (final level in catalog.parcels) {
-      if (save.parcelUnlocked(catalog.parcelIds, level.id) &&
-          save.parcelRecords[level.id]?.finished != true) {
-        return level.id;
+    if (last != null &&
+        catalog.parcelById(last) != null &&
+        save.parcelRecords[last]?.finished != true) {
+      return last;
+    }
+    final levels = catalog.parcels;
+    for (var i = 0; i < levels.length; i++) {
+      final open =
+          i == 0 || save.parcelRecords[levels[i - 1].id]?.finished == true;
+      if (open && save.parcelRecords[levels[i].id]?.finished != true) {
+        return levels[i].id;
       }
     }
     return catalog.parcels.first.id;
@@ -544,27 +550,40 @@ class RectoraController extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    syncBusy = true;
+    notifyListeners();
+    // Firebase refuses to delete a user without a recent sign-in.
+    final restored = await accounts.restore();
+    final identity = restored.identity;
+    if (identity != null && identity.id == save.accountPlayerId) {
+      _idToken = identity.idToken ?? identity.accessToken;
+      await firebaseBind.bind(
+        identity.idToken,
+        accessToken: identity.accessToken,
+      );
+    }
     if (_idToken == null || _idToken!.isEmpty) {
+      syncBusy = false;
       accountMessage = 'Sign in again before deleting the account.';
       accountMessageIsError = true;
       notifyListeners();
       return;
     }
-    syncBusy = true;
-    notifyListeners();
     final deleted = await cloud.deleteAccount(_idToken!);
     syncBusy = false;
     if (!deleted) {
-      accountMessage =
-          'Cloud data could not be deleted. Progress on this device was kept.';
+      accountMessage = 'Your account could not be deleted. Check your connection and try again. Progress was kept.';
       accountMessageIsError = true;
       notifyListeners();
       return;
     }
     _syncTimer?.cancel();
-    save = save.copyWith(clearSync: true);
-    syncPhase = SyncPhase.synced;
-    accountMessage = 'Cloud data was removed. This Google login is unchanged. Puzzles on this phone were kept.';
+    await accounts.signOut();
+    await firebaseBind.unbind();
+    _idToken = null;
+    save = save.deleteIdentity();
+    syncPhase = SyncPhase.localOnly;
+    accountMessage = 'Your account and its progress were deleted. Guest progress on this phone was kept.';
     accountMessageIsError = false;
     await _persist(fromSync: true);
   }

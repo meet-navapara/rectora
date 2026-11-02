@@ -74,6 +74,34 @@ void main() {
     expect(validateDisplayName('A very long display name'), isNull);
   });
 
+  test('no difficulty refuses a legal move on the player\'s behalf', () {
+    for (final difficulty in Difficulty.values) {
+      expect(strictnessFor(difficulty), Strictness.basic);
+    }
+  });
+
+  test('skips run out, and solving a skipped level gives one back', () {
+    var save = SaveGame.fresh();
+    expect(save.skipsLeft(PlayMode.parcel), 3);
+    for (final id in ['parcel-001', 'parcel-002', 'parcel-003']) {
+      save = save.finishLevel(
+        id: id,
+        skipped: true,
+        hintsUsed: 0,
+        elapsedMs: 1,
+      );
+    }
+    expect(save.skipsLeft(PlayMode.parcel), 0);
+    expect(save.skipsLeft(PlayMode.trace), 3);
+    save = save.finishLevel(
+      id: 'parcel-002',
+      skipped: false,
+      hintsUsed: 0,
+      elapsedMs: 1,
+    );
+    expect(save.skipsLeft(PlayMode.parcel), 1);
+  });
+
   test('progress unlocks, replays, skips, and restarts stay consistent', () {
     var save = SaveGame.fresh().markStarted(thread: false, id: 'parcel-001');
     save = save.finishLevel(

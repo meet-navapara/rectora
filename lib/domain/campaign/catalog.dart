@@ -186,35 +186,8 @@ class GameCatalog {
   List<String> get traceIds => [for (final level in traces) level.id];
   List<String> get inkIds => [for (final level in inks) level.id];
 
-  /// Ten themed chapters for the full parcel campaign. Smaller test catalogs
-  /// keep the packs stored in the level file.
-  List<PackSummary> get parcelChapters {
-    if (parcels.length < 100) return packsFor(false);
-    const titles = [
-      ('dawn', 'Dawn', 'Beginner boards with obvious rectangles.'),
-      ('paper', 'Warm Paper', 'Easy shapes and short deductions.'),
-      ('terrace', 'Terrace', 'Medium boards start to branch.'),
-      ('inkwell', 'Inkwell', 'Hard placements have a cost.'),
-      ('copper', 'Copper', 'Expert rectangles are less local.'),
-      ('lantern', 'Lantern', 'Several clues stay open at once.'),
-      ('keystone', 'Keystone', 'The next rectangle is earned.'),
-      ('gallery', 'Gallery', 'Large boards with sparse clues.'),
-      ('vault', 'Vault', 'Master deductions across the grid.'),
-      ('archive', 'Night Archive', 'The longest parcel arguments.'),
-    ];
-    final size = (parcels.length / titles.length).ceil();
-    return [
-      for (var i = 0; i < titles.length; i++)
-        PackSummary(
-          id: titles[i].$1,
-          name: titles[i].$2,
-          blurb: titles[i].$3,
-          levelIds: [
-            for (final level in parcels.skip(i * size).take(size)) level.id,
-          ],
-        ),
-    ];
-  }
+  /// The level file names each chapter, so the map and the home screen agree.
+  List<PackSummary> get parcelChapters => packsFor(false);
 
   List<PackSummary> get tracePacks => packGroups(
     traces,

@@ -23,6 +23,11 @@ void main() {
     final dir = Directory('${root.path}/android/app/src/main/res/${entry.key}');
     File('${dir.path}/ic_launcher.png')
         .writeAsBytesSync(_png(_mark(entry.value)));
+    // Adaptive layer. Launchers crop to the middle 72 of its 108 units.
+    final side = entry.value * 108 ~/ 48;
+    File(
+      '${dir.path}/ic_launcher_foreground.png',
+    ).writeAsBytesSync(_png(_inset(_mark(side ~/ 2, transparent: true), side)));
   }
 
   final icons = Directory(
@@ -65,6 +70,19 @@ void main() {
   File('${sfx.path}/complete.wav')
       .writeAsBytesSync(_tone([(523, 0.08), (659, 0.08), (784, 0.16)]));
   print('Wrote Rectora icons and sound effects.');
+}
+
+/// Centers [mark] on a transparent square of [side] pixels.
+Uint32List _inset(Uint32List mark, int side) {
+  final size = math.sqrt(mark.length).round();
+  final at = (side - size) ~/ 2;
+  final pixels = Uint32List(side * side);
+  for (var y = 0; y < size; y++) {
+    for (var x = 0; x < size; x++) {
+      pixels[(y + at) * side + x + at] = mark[y * size + x];
+    }
+  }
+  return pixels;
 }
 
 Uint32List _mark(int size, {bool transparent = false}) {

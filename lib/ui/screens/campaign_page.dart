@@ -3,6 +3,7 @@ import 'package:rectora/domain/campaign/catalog.dart';
 import 'package:rectora/domain/parcels/models.dart';
 import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/theme/palette.dart';
+import 'package:rectora/ui/widgets/ad_banner.dart';
 import 'package:rectora/ui/widgets/campaign_map.dart';
 import 'package:rectora/ui/controller.dart';
 import 'package:rectora/ui/scope.dart';
@@ -105,6 +106,7 @@ class _CampaignPageState extends State<CampaignPage> {
     final controller = RectoraScope.of(context);
     final palette = RectoraTheme.of(context);
     final packs = _packs(controller);
+    final ids = _ids(controller);
     final records = controller.save.recordsFor(mode);
     final title = switch (widget.kind) {
       CampaignKind.parcel => 'Parcels',
@@ -118,7 +120,9 @@ class _CampaignPageState extends State<CampaignPage> {
       final solved = pack.levelIds
           .where((id) => records[id]?.solved == true)
           .length;
-      final locked = pack.levelIds.isEmpty;
+      final locked =
+          pack.levelIds.isEmpty ||
+          !controller.save.unlocked(mode, ids, pack.levelIds.first);
       final current = !currentSet && !locked && solved < pack.levelIds.length;
       if (current) currentSet = true;
       stops.add(
@@ -133,6 +137,7 @@ class _CampaignPageState extends State<CampaignPage> {
     }
     return Scaffold(
       backgroundColor: palette.background,
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: Text(title),
         backgroundColor: palette.background,
@@ -190,6 +195,7 @@ class PackPage extends StatelessWidget {
     }
     return Scaffold(
       backgroundColor: palette.background,
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: Text(pack.name),
         backgroundColor: palette.background,
@@ -207,7 +213,7 @@ class PackPage extends StatelessWidget {
         itemCount: pack.levelIds.length,
         itemBuilder: (context, index) {
           final id = pack.levelIds[index];
-          final unlocked = true;
+          final unlocked = controller.save.unlocked(mode, ids, id);
           final record = controller.save.recordsFor(mode)[id];
           final levelNumber = switch (kind) {
             CampaignKind.parcel => controller.catalog.parcelById(id)!.number,
@@ -233,6 +239,16 @@ class PackPage extends StatelessWidget {
             current: id == nextId,
             finale: id == pack.levelIds.last,
             onTap: () {
+              if (!unlocked) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text('Finish level ${levelNumber - 1} first.'),
+                    ),
+                  );
+                return;
+              }
               final page = switch (kind) {
                 CampaignKind.parcel => ParcelPage(
                   level: controller.catalog.parcelById(id)!,

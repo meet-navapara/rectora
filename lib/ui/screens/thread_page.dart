@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:rectora/domain/ads/ad_policy.dart';
 import 'package:rectora/domain/campaign/catalog.dart';
 import 'package:rectora/domain/campaign/records.dart';
+import 'package:rectora/domain/campaign/save_game.dart';
 import 'package:rectora/domain/threads/engine.dart';
 import 'package:rectora/domain/threads/models.dart';
 import 'package:rectora/domain/tutorial/coach.dart';
 import 'package:rectora/domain/work/background.dart';
+import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/coach/guide_view.dart';
 import 'package:rectora/ui/feedback_player.dart';
@@ -229,6 +231,9 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
       runningSince = null;
     }
     final controller = RectoraScope.read(context);
+    final xpBefore = controller.save.xp;
+    final replay =
+        controller.save.threadRecords[widget.level.id]?.solved == true;
     final record = await controller.finishLevel(
       id: widget.level.id,
       thread: true,
@@ -247,8 +252,14 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
       context: context,
       barrierDismissible: false,
       title: 'Threads complete',
-      body:
-          'Time $clockLabel. ${session.hintsUsed == 0 ? 'Perfect clear.' : 'Hints used: ${session.hintsUsed}.'} Best ${_clock(record.bestMs)}.',
+      body: completionBody(
+        time: clockLabel,
+        hints: session.hintsUsed,
+        difficulty: widget.level.difficulty,
+        xpGained: controller.save.xp - xpBefore,
+        bestMs: record.bestMs,
+        replay: replay,
+      ),
       choices: [
         if (next != null)
           const DialogChoice(
@@ -294,6 +305,7 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
 
   Future<void> _hint() async {
     if (busy) return;
+    if (!await claimHint(context, session.hintsUsed) || !mounted) return;
     busy = true;
     final ThreadHint hint;
     try {
@@ -348,10 +360,11 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
   }
 
   Future<void> _skip() async {
+    if (!await allowSkip(context, PlayMode.thread) || !mounted) return;
     final choice = await showRectoraDialog<bool>(
       context: context,
       title: 'Skip this thread?',
-      body: 'Skipping marks the puzzle finished and unlocks the next one. It does not count as a solve. No advertisement is shown.',
+      body: 'Skipping unlocks the next level but does not count as a solve. Each mode can have three skipped levels at a time.',
       choices: const [
         DialogChoice(label: 'Skip puzzle', value: true, primary: true),
         DialogChoice(label: 'Keep playing', value: false),
@@ -531,7 +544,6 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
                         gestures: 'Press one letter and drag to the other copy. Tap a finished path to remove it.',
                         mistakes: 'Stay on squares that share a side. Paths cannot cross or reuse a square.',
                         lesson: threadTutorial,
-                        onBonusHint: _hint,
                       ),
                       icon: const Icon(Icons.help_outline),
                     ),
@@ -604,6 +616,17 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
                   child: Row(
                     children: [
                       PlayTool(
+                        label: 'Undo',
+                        tooltip: 'Undo the last path',
+                        icon: Icons.undo,
+                        onPressed: session.canUndo
+                            ? () {
+                                setState(() => session.undo());
+                                _persist();
+                              }
+                            : null,
+                      ),
+                      PlayTool(
                         label: 'Redo',
                         tooltip: 'Restore the undone path',
                         icon: Icons.redo,
@@ -612,17 +635,6 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
                                 setState(() {
                                   session.redo();
                                 });
-                                _persist();
-                              }
-                            : null,
-                      ),
-                      PlayTool(
-                        label: 'Undo',
-                        tooltip: 'Undo the last path',
-                        icon: Icons.undo,
-                        onPressed: session.canUndo
-                            ? () {
-                                setState(() => session.undo());
                                 _persist();
                               }
                             : null,
@@ -650,12 +662,6 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
       ),
     );
   }
-}
-
-String _clock(int? ms) {
-  if (ms == null) return 'not set';
-  final total = ms ~/ 1000;
-  return '${(total ~/ 60).toString().padLeft(2, '0')}:${(total % 60).toString().padLeft(2, '0')}';
 }
 
 bool _sameCells(List<int> left, List<int> right) {

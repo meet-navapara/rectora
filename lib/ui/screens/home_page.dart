@@ -238,7 +238,7 @@ class _HomePageState extends State<HomePage> {
                       chapter: next?.packName ?? 'Parcels',
                       levelLabel: next == null
                           ? 'No puzzle is ready'
-                          : '${next.number}. ${next.title}',
+                          : next.title,
                       summary: next == null
                           ? 'The parcel campaign is empty.'
                           : '$solved of $puzzleTotal puzzles solved',
@@ -355,8 +355,9 @@ String _tier(
   List<Difficulty> difficulties,
 ) {
   var best = Difficulty.beginner;
+  final records = controller.save.recordsFor(mode);
   for (var i = 0; i < ids.length; i++) {
-    if (!controller.save.unlocked(mode, ids, ids[i])) continue;
+    if (i > 0 && records[ids[i - 1]]?.finished != true) break;
     if (difficulties[i].index > best.index) best = difficulties[i];
   }
   return best.label;

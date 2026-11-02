@@ -72,8 +72,9 @@ class ParcelBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = RectoraTheme.of(context);
     final save = RectoraScope.of(context).save;
+    final palette = RectoraTheme.of(context)
+        .forBoard(save.settings.boardStyle, save.xp);
     final accent = _boardAccent(palette, save.settings.boardStyle, save.xp);
     final scaler = MediaQuery.textScalerOf(context);
     return Semantics(

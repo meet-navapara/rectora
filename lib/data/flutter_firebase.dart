@@ -161,7 +161,9 @@ class FirestoreProgressCloud implements ProgressCloud {
       batch.delete(
         FirebaseFirestore.instance.collection('users').doc(user.uid),
       );
-      await batch.commit();
+      // A write waits forever without a connection, so give it a limit.
+      await batch.commit().timeout(const Duration(seconds: 15));
+      await user.delete();
       return true;
     } on FirebaseException {
       return false;

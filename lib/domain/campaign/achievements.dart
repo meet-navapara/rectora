@@ -28,7 +28,10 @@ List<Achievement> achievementsFor({
   required int masterSolved,
 }) {
   final quiet = save.parcelRecords.entries
-      .where((entry) => !entry.key.startsWith('daily@'))
+      .where(
+        (entry) =>
+            !entry.key.startsWith('daily@') && !entry.key.startsWith('weekly@'),
+      )
       .where((entry) => entry.value.solved && entry.value.perfect)
       .length;
   return [

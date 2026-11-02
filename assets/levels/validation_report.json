@@ -1,11 +1,10 @@
 {
-  "parcels": 520,
-  "threads": 72,
-  "daily": 120,
   "schedule": "rectora-daily-v1",
   "epoch": "2026-01-01",
   "uniqueness": "solver limit 2, rejected unless exactly one solution",
-  "elapsedSeconds": 27,
-  "traces": 52,
-  "inks": 53
+  "parcels": 500,
+  "traces": 500,
+  "inks": 500,
+  "threads": 500,
+  "daily": 120
 }

@@ -38,9 +38,11 @@ class TraceSolveResult {
     required this.solutions,
     required this.budgetExhausted,
     this.solution,
+    this.nodes = 0,
   });
 
   final int solutions;
+  final int nodes;
   final bool budgetExhausted;
   final List<int>? solution;
 }
@@ -214,6 +216,7 @@ TraceSolveResult solveTrace(
     solutions: solutions,
     budgetExhausted: exhausted,
     solution: found,
+    nodes: nodes,
   );
 }
 

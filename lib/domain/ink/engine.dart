@@ -48,9 +48,11 @@ class InkSolveResult {
     required this.solutions,
     required this.budgetExhausted,
     this.solution,
+    this.nodes = 0,
   });
 
   final int solutions;
+  final int nodes;
   final bool budgetExhausted;
   final List<InkRegion>? solution;
 }
@@ -288,6 +290,7 @@ InkSolveResult solveInks(
     solutions: solutions,
     budgetExhausted: exhausted,
     solution: found,
+    nodes: nodes,
   );
 }
 

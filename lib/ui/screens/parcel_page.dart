@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rectora/domain/campaign/catalog.dart';
 import 'package:rectora/domain/campaign/records.dart';
+import 'package:rectora/domain/campaign/save_game.dart';
 import 'package:rectora/domain/common/date_key.dart';
 import 'package:rectora/domain/parcels/models.dart';
 import 'package:rectora/domain/progression/rewards.dart';
@@ -169,7 +170,11 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
     if (session.placed.any((rect) => rect.containsCell(row, col))) {
       if (session.eraseAt(row, col)) {
         feedback.tap(settings);
-        setState(() => notice = null);
+        setState(() {
+          notice = null;
+          anchor = null;
+          preview = null;
+        });
         _persist();
       }
       return;
@@ -180,11 +185,15 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
         setState(() {
           notice = null;
           anchor = GridRect(row, col, row, col);
+          preview = anchor;
         });
         return;
       }
       final rect = GridRect.fromCorners(anchor!.r1, anchor!.c1, row, col);
-      setState(() => anchor = null);
+      setState(() {
+        anchor = null;
+        preview = null;
+      });
       _commit(rect);
       return;
     }
@@ -258,11 +267,6 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
       await _checkComplete();
       return;
     }
-    if (decided == PlacementIssue.deadEnd) {
-      if (!mounted) return;
-      setState(() => notice = null);
-      return;
-    }
     await feedback.error(settings);
     if (!mounted) return;
     setState(() => notice = _issueText(decided, rect));
@@ -282,7 +286,7 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
       case PlacementIssue.overlap:
         return 'That overlaps a rectangle already on the board.';
       case PlacementIssue.deadEnd:
-        return 'The area matches the number, but the remaining numbers would have no legal rectangle. On this difficulty that move is refused.';
+        return 'The size fits, but that rectangle would leave another number with no room. Try a different shape.';
       case PlacementIssue.malformed:
         return 'This puzzle data cannot be played.';
       case PlacementIssue.ok:
@@ -296,6 +300,7 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
     _bank();
     final controller = RectoraScope.read(context);
     final xpBefore = controller.save.xp;
+    final replay = controller.save.parcelRecords[storageId]?.solved == true;
     final record = await controller.finishLevel(
       id: storageId,
       thread: false,
@@ -318,13 +323,19 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
       await Future<void>.delayed(const Duration(milliseconds: 280));
     }
     if (!mounted) return;
-    await _completeDialog(record, firstDaily, controller.save.xp - xpBefore);
+    await _completeDialog(
+      record,
+      firstDaily,
+      controller.save.xp - xpBefore,
+      replay,
+    );
   }
 
   Future<void> _completeDialog(
     LevelRecord record,
     bool firstDaily,
     int xpGained,
+    bool replay,
   ) async {
     final controller = RectoraScope.read(context);
     final next = widget.dailyDate == null && !widget.weekly
@@ -341,6 +352,7 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
           difficulty: widget.level.difficulty,
           xpGained: xpGained,
           bestMs: record.bestMs,
+          replay: replay,
         ),
         if (widget.dailyDate != null && firstDaily)
           'Today counts toward your streak.',
@@ -351,9 +363,11 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
           const DialogChoice(label: 'Next level', value: 'next', primary: true),
         const DialogChoice(label: 'Replay', value: 'replay', primary: false),
         DialogChoice(
-          label: widget.dailyDate == null
-              ? 'Back to campaign'
-              : 'Back to calendar',
+          label: widget.dailyDate != null
+              ? 'Back to calendar'
+              : widget.weekly
+              ? 'Back to this week'
+              : 'Back to campaign',
           value: 'back',
           primary: next == null,
         ),
@@ -392,6 +406,7 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
 
   Future<void> _hint() async {
     if (busy) return;
+    if (!await claimHint(context, session.hintsUsed) || !mounted) return;
     busy = true;
     final ParcelHint hint;
     try {
@@ -411,28 +426,20 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
       busy = false;
     }
     if (!mounted) return;
-    final clue = hint.clueIndex == null
-        ? null
-        : widget.level.puzzle.clues[hint.clueIndex!];
-    final where = clue == null
-        ? ''
-        : ' The number ${clue.value} is in row ${clue.row + 1}, column ${clue.col + 1}.';
     final String title;
     final String body;
     final List<DialogChoice> choices;
     switch (hint.kind) {
       case ParcelHintKind.forced:
-        title = 'Only one shape';
-        body =
-            'Only one rectangle can hold this number from the current board.$where Placing it uses a hint, and this solve will not be perfect even if you undo.';
+        title = 'Use your hint?';
+        body = 'A hint can place one rectangle for you. This solve will not be perfect, even if you undo.';
         choices = const [
           DialogChoice(label: 'Place this step', value: true, primary: true),
           DialogChoice(label: 'Not now', value: false),
         ];
       case ParcelHintKind.required:
-        title = 'Needed to finish';
-        body =
-            'This rectangle is part of the only way to finish from here.$where Placing it uses a hint.';
+        title = 'Use your hint?';
+        body = 'A hint can place one rectangle for you. This solve will not be perfect, even if you undo.';
         choices = const [
           DialogChoice(label: 'Place this step', value: true, primary: true),
           DialogChoice(label: 'Not now', value: false),
@@ -456,7 +463,6 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
           DialogChoice(label: 'Close', value: false, primary: true),
         ];
     }
-    setState(() => highlight = hint.rect);
     final choice = await showRectoraDialog<Object>(
       context: context,
       title: title,
@@ -491,10 +497,11 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
   }
 
   Future<void> _skip() async {
+    if (!await allowSkip(context, PlayMode.parcel) || !mounted) return;
     final choice = await showRectoraDialog<bool>(
       context: context,
       title: 'Skip this parcel?',
-      body: 'Skipping marks the level finished and unlocks the next one. It does not count as a solved puzzle or a perfect clear. Nothing is charged, and no advertisement is shown.',
+      body: 'Skipping unlocks the next level but does not count as a solve. Each mode can have three skipped levels at a time.',
       choices: const [
         DialogChoice(label: 'Skip level', value: true, primary: true),
         DialogChoice(label: 'Keep playing', value: false),
@@ -697,7 +704,6 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
                           gestures: 'Drag from one corner of a rectangle to the other. Tap a finished rectangle to remove it.',
                           mistakes: 'A rectangle needs one number, and the number must match its size. Rectangles cannot overlap.',
                           lesson: parcelTutorial,
-                          onBonusHint: _hint,
                         ),
                         icon: const Icon(Icons.help_outline),
                       ),
@@ -828,6 +834,10 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
                         icon: Icons.crop_free,
                         selected: settings.cornerPlacement,
                         onPressed: () {
+                          setState(() {
+                            anchor = null;
+                            preview = null;
+                          });
                           controller.updateSettings(
                             settings.copyWith(
                               cornerPlacement: !settings.cornerPlacement,
@@ -841,7 +851,7 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
                         icon: Icons.lightbulb_outline,
                         onPressed: busy ? null : _hint,
                       ),
-                      if (widget.dailyDate == null && !solved)
+                      if (widget.dailyDate == null && !widget.weekly && !solved)
                         PlayTool(
                           label: 'Skip',
                           tooltip: 'Skip this level without an ad',

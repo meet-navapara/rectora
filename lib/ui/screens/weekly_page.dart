@@ -4,6 +4,7 @@ import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/scope.dart';
 import 'package:rectora/ui/screens/parcel_page.dart';
+import 'package:rectora/ui/widgets/ad_banner.dart';
 import 'package:rectora/ui/widgets/dialogs.dart';
 
 class WeeklyPage extends StatelessWidget {
@@ -21,6 +22,7 @@ class WeeklyPage extends StatelessWidget {
     final claimed = controller.save.weeklyClaimed.contains(week);
     return Scaffold(
       backgroundColor: palette.background,
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: const Text('This week'),
         backgroundColor: palette.background,
@@ -33,7 +35,7 @@ class WeeklyPage extends StatelessWidget {
           Text('Week of $week', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
-            'Finish these three parcel puzzles. The set is the same for this week and this catalog. Completing it awards $weeklyClearBonus mastery points once. Playing them again does not award them again.',
+            'Finish these three parcel puzzles. A new set arrives every Monday. Completing it awards $weeklyClearBonus mastery points once. Playing them again does not award them again.',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 16),

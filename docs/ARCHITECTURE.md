@@ -4,7 +4,7 @@ Rectora is a single Flutter app. Puzzle rules do not live in widgets.
 
 ## Domain
 
-- `lib/domain/parcels` validates and solves rectangle covers. A placement is accepted only when the rectangle stays on the board, has a positive area, contains exactly one clue, matches that clue, and does not overlap an accepted region. Easy puzzles stop there. Medium puzzles also require every remaining clue to have at least one candidate. Hard, expert, and master puzzles run the solver on commit and refuse a move that leaves zero solutions. A search that hits its node budget does not reject the move and does not invent a hint.
+- `lib/domain/parcels` validates and solves rectangle covers. A placement is accepted only when the rectangle stays on the board, has a positive area, contains exactly one clue, matches that clue, and does not overlap an accepted region. Every difficulty stops there. A legal move that leads nowhere is accepted, because refusing it would tell the player which moves are right.
 - `lib/domain/trace` is a single ordered path. The path starts on checkpoint 1, visits the numbered checkpoints in order, stays on orthogonal neighbors, and does not revisit a cell or enter a blocked cell. Completion means the path length equals the number of open cells and the path ends on the last checkpoint.
 - `lib/domain/ink` fills the board with edge-connected regions. A region contains exactly one clue and has a size equal to that clue. Regions may bend. They cannot overlap, and every cell belongs to one region.
 - `lib/domain/threads` is a separate mode. Paths are orthogonal. A diagonal drag is not interpolated into a diagonal step. Paths cannot cross, enter a blocked cell, or use another pair's endpoint. Completion means every open cell belongs to exactly one finished path.
@@ -14,9 +14,9 @@ Rectora is a single Flutter app. Puzzle rules do not live in widgets.
 
 ## Catalogs
 
-`tool/generate_campaign.dart` builds a complete partition, writes clue values from the regions, removes the borders, and keeps the puzzle only when the solver finds exactly one solution. `tool/generate_modes.dart` does the same for Trace and Inks. The shipped files are `assets/levels/parcels.json`, `traces.json`, `inks.json`, `threads.json`, and `daily.json`, format version 1. `proveCatalogUnique` repeats that check in tests. App startup checks shape and exact cover only.
+`tool/build_campaign.dart` builds each board from a known answer and keeps it only when the solver finds exactly one solution. It keeps the hardest boards of each size, orders them by the effort in `lib/domain/difficulty/effort.dart`, and assigns chapters and tiers from that order. The shipped files are `assets/levels/parcels.json`, `traces.json`, `inks.json`, `threads.json`, and `daily.json`, format version 1. `proveCatalogUnique` repeats the uniqueness check in tests, and a test recomputes the effort order. App startup checks shape and exact cover only.
 
-Save format stays at version 1. Trace and Inks progress are optional maps, so an older save still loads. The first 20 parcel levels stored as easy are shown as beginner. Their rules do not change.
+Save format stays at version 1. Trace and Inks progress are optional maps, so an older save still loads.
 
 ## Application
 
@@ -26,6 +26,6 @@ Save format stays at version 1. Trace and Inks progress are optional maps, so an
 
 ## What is intentionally absent
 
-There is no account, backend, Firebase, analytics SDK, or advertising SDK. Skip is a free, confirmed action. Sound is local WAV playback. Haptics use the platform vibrator. Neither feature sends data.
+There is no analytics SDK and no purchase flow. Skip is a free, confirmed action. Sound is local WAV playback. Haptics use the platform vibrator. Neither feature sends data. Google sign-in, Firebase, and AdMob are described in `docs/RELEASE.md`.
 
 Release signing reads `android/key.properties` when that file exists. The repository does not contain a keystore or passwords.

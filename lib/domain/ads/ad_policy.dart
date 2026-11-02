@@ -94,7 +94,11 @@ class Ads {
   static InterstitialAds interstitials = const UnavailableInterstitial();
   static AdCadence cadence = const AdCadence();
   static final rewards = RewardGate();
+  static var bannersOn = false;
   static var _rewardRequest = 0;
+
+  /// False when this build requests no ads, so nothing should offer one.
+  static bool get canOfferReward => rewarded is! UnavailableRewarded;
 
   static Future<bool> grantRewarded() async {
     final requestId = ++_rewardRequest;

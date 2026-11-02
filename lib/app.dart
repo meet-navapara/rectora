@@ -59,7 +59,9 @@ class _RectoraAppState extends State<RectoraApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       controller?.onAppResumed();
-      _checkOnline();
+      // Closing an ad also resumes the app. A slow lookup then must not swap
+      // the home screen out from under someone who is already playing.
+      if (online != true) _checkOnline();
     }
   }
 
@@ -92,6 +94,7 @@ class _RectoraAppState extends State<RectoraApp> with WidgetsBindingObserver {
       });
       await _checkOnline();
     } catch (caught) {
+      debugPrint('Rectora could not start: $caught');
       if (!mounted) return;
       setState(() => error = caught);
     }
@@ -111,7 +114,9 @@ class _RectoraAppState extends State<RectoraApp> with WidgetsBindingObserver {
                 children: [
                   const Text('Rectora could not open its puzzles.'),
                   const SizedBox(height: 12),
-                  Text('$error'),
+                  const Text(
+                    'Your progress was not changed. Try again, or restart the app if this keeps happening.',
+                  ),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: _boot,

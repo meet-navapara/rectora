@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:rectora/domain/ads/ad_policy.dart';
+import 'package:rectora/domain/campaign/save_game.dart';
+import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/domain/tutorial/progress.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/home/home_motion.dart';
@@ -476,46 +478,70 @@ Future<void> showModeHelp({
   required String gestures,
   required String mistakes,
   required List<TutorialStep> lesson,
-  required Future<void> Function() onBonusHint,
 }) async {
   final action = await showRectoraDialog<String>(
     context: context,
     title: 'How to play',
     body: '$objective\n\n$gestures\n\n$mistakes',
-    choices: const [
-      DialogChoice(label: 'Replay lesson', value: 'replay', primary: true),
-      DialogChoice(label: 'Extra hint', value: 'hint'),
-      DialogChoice(label: 'Close', value: 'close'),
+    choices: [
+      const DialogChoice(
+        label: 'Replay lesson',
+        value: 'replay',
+        primary: true,
+      ),
+      const DialogChoice(label: 'Close', value: 'close'),
     ],
   );
-  if (!context.mounted || action == null || action == 'close') return;
-  if (action == 'replay') {
-    await showTutorial(context, lesson);
-    return;
+  if (!context.mounted || action != 'replay') return;
+  await showTutorial(context, lesson);
+}
+
+/// True when the player may take a hint: the free one, or one paid for by a
+/// finished rewarded ad.
+Future<bool> claimHint(BuildContext context, int used) async {
+  if (used < freeHintsPerPuzzle) return true;
+  if (!Ads.canOfferReward) {
+    await showRectoraDialog<bool>(
+      context: context,
+      title: 'No hints left',
+      body: 'Each puzzle has one free hint, and this one is used.',
+      choices: const [DialogChoice(label: 'OK', value: true, primary: true)],
+    );
+    return false;
   }
   final watch = await showRectoraDialog<bool>(
     context: context,
-    title: 'Extra hint',
-    body: 'The hint button is always free. A short test ad can show one more hint. You can cancel.',
+    title: 'No free hints left',
+    body: 'Each puzzle has one free hint. A short ad can give you another.',
     choices: const [
       DialogChoice(label: 'Watch ad', value: true, primary: true),
       DialogChoice(label: 'Not now', value: false),
     ],
   );
-  if (!context.mounted || watch != true) return;
+  if (!context.mounted || watch != true) return false;
   final granted = await Ads.grantRewarded();
-  if (!context.mounted) return;
-  if (!granted) {
+  if (!granted && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'The ad did not finish, so no extra hint was added. The hint button is still free.',
-        ),
+        content: Text('The ad did not finish, so no hint was added.'),
       ),
     );
-    return;
   }
-  await onBonusHint();
+  return granted;
+}
+
+/// Skipping has a limit, so a hard level cannot be stepped over forever.
+Future<bool> allowSkip(BuildContext context, PlayMode mode) async {
+  final left = RectoraScope.read(context).save.skipsLeft(mode);
+  if (left > 0) return true;
+  await showRectoraDialog<bool>(
+    context: context,
+    title: 'No skips left',
+    body:
+        'Each mode can have $skipAllowance skipped levels at a time. Go back and solve one to skip again.',
+    choices: const [DialogChoice(label: 'OK', value: true, primary: true)],
+  );
+  return false;
 }
 
 class _ExamplePainter extends CustomPainter {

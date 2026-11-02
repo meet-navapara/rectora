@@ -386,6 +386,7 @@ ThreadSolveResult solveThreads(
     solutions: solutions,
     budgetExhausted: budgetExhausted,
     solution: first,
+    nodes: nodes,
   );
 }
 
@@ -571,7 +572,7 @@ class ThreadSession {
       geometry,
       fixed: _paths,
       limit: 1,
-      nodeBudget: 150000,
+      nodeBudget: 180000,
     );
     if (!solved.budgetExhausted && solved.solutions == 0) {
       return const ThreadHint(kind: ThreadHintKind.deadEnd);

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:rectora/domain/threads/models.dart';
 import 'package:rectora/theme/palette.dart';
+import 'package:rectora/ui/scope.dart';
 import 'package:rectora/ui/widgets/parcel_board.dart';
 
 class ThreadBoard extends StatelessWidget {
@@ -27,7 +28,9 @@ class ThreadBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = RectoraTheme.of(context);
+    final save = RectoraScope.of(context).save;
+    final palette = RectoraTheme.of(context)
+        .forBoard(save.settings.boardStyle, save.xp);
     final scaler = MediaQuery.textScalerOf(context);
     return Semantics(
       label:

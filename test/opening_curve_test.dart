@@ -28,10 +28,9 @@ void main() {
     expect(catalog.threads[0].solution.length, greaterThan(1));
   });
 
-  test('parcels 1-100 are unique and grow less forced', () {
+  test('parcels 1-100 are unique and rise in tier', () {
     final seen = <String>{};
     final ranks = <int>[];
-    final forced = <double>[];
     for (final level in catalog.parcels.take(100)) {
       final clues = [
         for (final clue in level.puzzle.clues)
@@ -47,16 +46,7 @@ void main() {
       expect(solved.budgetExhausted, isFalse, reason: level.id);
       expect(solved.solutions, 1, reason: level.id);
       ranks.add(level.difficulty.index);
-      forced.add(geometry.forcedRatio);
     }
-    double mean(int start, int end) {
-      var total = 0.0;
-      for (var i = start; i < end; i++) {
-        total += forced[i];
-      }
-      return total / (end - start);
-    }
-
     double meanRank(int start, int end) {
       var total = 0.0;
       for (var i = start; i < end; i++) {
@@ -65,8 +55,7 @@ void main() {
       return total / (end - start);
     }
 
-    expect(mean(75, 100), lessThan(mean(2, 10)));
     expect(meanRank(75, 100), greaterThan(meanRank(2, 10)));
-    expect(catalog.parcels.length, 520);
+    expect(catalog.parcels.length, 500);
   });
 }

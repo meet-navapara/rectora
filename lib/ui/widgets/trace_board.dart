@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rectora/domain/trace/engine.dart';
 import 'package:rectora/theme/palette.dart';
+import 'package:rectora/ui/scope.dart';
 
 class TraceBoard extends StatelessWidget {
   const TraceBoard({
@@ -50,7 +51,10 @@ class TraceBoard extends StatelessWidget {
                   painter: _TracePainter(
                     puzzle: puzzle,
                     path: path,
-                    palette: RectoraTheme.of(context),
+                    palette: RectoraTheme.of(context).forBoard(
+                      RectoraScope.of(context).save.settings.boardStyle,
+                      RectoraScope.of(context).save.xp,
+                    ),
                     cell: cell,
                   ),
                 ),

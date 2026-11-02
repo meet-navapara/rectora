@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rectora/data/mobile_ads.dart';
 import 'package:rectora/domain/account/auth_types.dart';
 import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/domain/settings/settings.dart';
@@ -164,22 +165,19 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: palette.rose,
-                textStyle: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              onPressed: () => _clearLocalData(context, controller),
-              child: const Text(
-                'Clear local data on this device',
-                textAlign: TextAlign.center,
-              ),
+          if (onResetLevel != null) ...[
+            const _Heading('This puzzle'),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Reset current level'),
+              subtitle: const Text('Clears the current attempt.'),
+              onTap: () async {
+                Navigator.pop(context);
+                await onResetLevel!();
+              },
             ),
-          ),
-          const _Heading('Audio & feel'),
+          ],
+          const _Heading('Sound and feel'),
           _Panel(
             child: Column(
               children: [
@@ -205,6 +203,13 @@ class SettingsPage extends StatelessWidget {
                     settings.copyWith(animations: !value),
                   ),
                 ),
+              ],
+            ),
+          ),
+          const _Heading('Gameplay'),
+          _Panel(
+            child: Column(
+              children: [
                 _Toggle(
                   title: 'Show timer',
                   value: settings.showTimer,
@@ -213,14 +218,16 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
                 _Toggle(
-                  title: 'Show size',
+                  title: 'Show board and rectangle size',
+                  subtitle: 'Parcels and the daily puzzle',
                   value: settings.showSize,
                   onChanged: (value) => controller.updateSettings(
                     settings.copyWith(showSize: value),
                   ),
                 ),
                 _Toggle(
-                  title: 'Place from the corner',
+                  title: 'Place rectangles with two taps',
+                  subtitle: 'Tap one corner, then the opposite corner, instead of dragging',
                   value: settings.cornerPlacement,
                   onChanged: (value) => controller.updateSettings(
                     settings.copyWith(cornerPlacement: value),
@@ -281,10 +288,10 @@ class SettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${controller.save.xp} mastery points. Board styles unlock as you finish puzzles. They do not change the rules.',
+            '${controller.save.xp} mastery points. Board styles recolor the empty squares and unlock as you finish puzzles.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const _Heading('Help and privacy'),
+          const _Heading('Help and legal'),
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('How to play'),
@@ -329,47 +336,40 @@ class SettingsPage extends StatelessWidget {
               applicationVersion: rectoraVersion,
             ),
           ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Reset current level'),
-            subtitle: Text(
-              activeLevelId == null && save.lastPlayed == null
-                  ? 'There is no active puzzle to reset.'
-                  : 'Clears the current attempt.',
-            ),
-            enabled: onResetLevel != null || save.lastPlayed != null,
-            onTap: () async {
-              if (onResetLevel != null) {
-                Navigator.pop(context);
-                await onResetLevel!();
-                return;
-              }
-              final id = controller.save.lastPlayed;
-              if (id == null) return;
-              final choice = await showRectoraDialog<bool>(
-                context: context,
-                title: 'Reset this level?',
-                body: 'The saved attempt for $id will be cleared.',
-                choices: const [
-                  DialogChoice(label: 'Reset', value: true, primary: true),
-                  DialogChoice(label: 'Cancel', value: false),
-                ],
+          FutureBuilder<bool>(
+            future: adPrivacyOptionsRequired(),
+            builder: (context, snapshot) {
+              if (snapshot.data != true) return const SizedBox.shrink();
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Ad privacy choices'),
+                onTap: showAdPrivacyOptions,
               );
-              if (choice == true) {
-                await controller.saveDraft(id: id, draft: null);
-              }
             },
           ),
+          const _Heading('Your data'),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Remove cloud data'),
+            title: const Text('Clear local data on this device'),
             subtitle: const Text(
-              'Deletes the progress stored for this Google account. The Google login stays. Puzzles on this phone stay until you clear them.',
+              'Removes solved puzzles, streaks, and drafts from this phone.',
             ),
-            onTap: controller.syncBusy
-                ? null
-                : () => _removeCloudData(context, controller),
+            onTap: () => _clearLocalData(context, controller),
           ),
+          if (save.isGoogle)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'Delete account',
+                style: TextStyle(color: palette.rose),
+              ),
+              subtitle: const Text(
+                'Permanently deletes your Rectora account and its progress.',
+              ),
+              onTap: controller.syncBusy
+                  ? null
+                  : () => _deleteAccount(context, controller),
+            ),
         ],
       ),
     );
@@ -391,38 +391,28 @@ class SettingsPage extends StatelessWidget {
     if (choice == true) await controller.clearProgress();
   }
 
-  Future<void> _removeCloudData(
+  Future<void> _deleteAccount(
     BuildContext context,
     RectoraController controller,
   ) async {
-    if (controller.save.isGuest) {
-      await showRectoraDialog<bool>(
-        context: context,
-        title: 'Sign in to remove cloud data',
-        body: 'Cloud progress belongs to a Google account. Sign in with that account, then choose Remove cloud data again. Puzzles on this phone are not deleted.',
-        choices: const [DialogChoice(label: 'OK', value: true, primary: true)],
-      );
-      return;
-    }
-    if (!controller.cloud.configured) {
-      await showRectoraDialog<bool>(
-        context: context,
-        title: 'Cloud data cannot be removed',
-        body: 'This build has no cloud service. Progress on this phone was not deleted.',
-        choices: const [DialogChoice(label: 'OK', value: true, primary: true)],
-      );
-      return;
-    }
     final choice = await showRectoraDialog<bool>(
       context: context,
-      title: 'Remove cloud data?',
-      body: 'This deletes the progress stored in the cloud for this Google account. The Google login stays, so you can sign in again. Puzzles on this phone stay until you clear them.',
+      title: 'Delete your account?',
+      body: 'This permanently deletes your Rectora account and the progress saved with it, in the cloud and on this phone. It cannot be undone. Your Google account itself is not affected, and guest progress on this phone stays.',
       choices: const [
-        DialogChoice(label: 'Remove cloud data', value: true, primary: true),
+        DialogChoice(label: 'Delete account', value: true, primary: true),
         DialogChoice(label: 'Cancel', value: false),
       ],
     );
-    if (choice == true) await controller.deleteAccount();
+    if (choice != true) return;
+    await controller.deleteAccount();
+    if (!context.mounted) return;
+    if (controller.save.isGuest) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      return;
+    }
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(controller.accountMessage ?? '')));
   }
 
   String _accountLines(RectoraController controller) {

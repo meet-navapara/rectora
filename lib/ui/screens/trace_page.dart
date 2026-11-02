@@ -6,6 +6,7 @@ import 'package:rectora/domain/campaign/catalog.dart';
 import 'package:rectora/domain/campaign/records.dart';
 import 'package:rectora/domain/campaign/save_game.dart';
 import 'package:rectora/domain/parcels/models.dart';
+import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/domain/trace/engine.dart';
 import 'package:rectora/domain/tutorial/coach.dart';
 import 'package:rectora/domain/work/background.dart';
@@ -96,9 +97,7 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    final pending = _draftTimer != null;
     _draftTimer?.cancel();
-    if (pending) _persist();
     WidgetsBinding.instance.removeObserver(this);
     feedback.dispose();
     super.dispose();
@@ -301,6 +300,9 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
     clockLive = false;
     _bank();
     final controller = RectoraScope.read(context);
+    final xpBefore = controller.save.xp;
+    final replay =
+        controller.save.traceRecords[widget.level.id]?.solved == true;
     final record = await controller.finishLevel(
       id: widget.level.id,
       mode: PlayMode.trace,
@@ -314,16 +316,21 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
     if (!mounted) return;
     await feedback.complete(controller.save.settings);
     if (!mounted) return;
-    await _done(record);
+    await _done(record, controller.save.xp - xpBefore, replay);
   }
 
-  Future<void> _done(LevelRecord record) async {
+  Future<void> _done(LevelRecord record, int xpGained, bool replay) async {
     final choice = await showRectoraDialog<String>(
       context: context,
       title: 'Path complete',
-      body: record.perfect
-          ? 'Every open cell is on the path, and no hint was used.'
-          : 'The numbers were visited in order and the board is covered.',
+      body: completionBody(
+        time: clockText(elapsedMs),
+        hints: session.hintsUsed,
+        difficulty: widget.level.difficulty,
+        xpGained: xpGained,
+        bestMs: record.bestMs,
+        replay: replay,
+      ),
       choices: const [
         DialogChoice(label: 'Next', value: 'next', primary: true),
         DialogChoice(label: 'Replay', value: 'replay'),
@@ -366,6 +373,7 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
 
   Future<void> _hint() async {
     if (busy) return;
+    if (!await claimHint(context, session.hintsUsed) || !mounted) return;
     busy = true;
     final TraceHint hint;
     try {
@@ -409,11 +417,20 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
     await _checkComplete();
   }
 
+  Future<void> _restartFromSettings() async {
+    setState(() {
+      session.restart();
+      notice = null;
+    });
+    await _persist();
+  }
+
   Future<void> _skip() async {
+    if (!await allowSkip(context, PlayMode.trace) || !mounted) return;
     final choice = await showRectoraDialog<bool>(
       context: context,
       title: 'Skip this path?',
-      body: 'Skipping unlocks the next Trace puzzle. It does not count as a solve, and it does not play an ad.',
+      body: 'Skipping unlocks the next level but does not count as a solve. Each mode can have three skipped levels at a time.',
       choices: const [
         DialogChoice(label: 'Skip', value: true, primary: true),
         DialogChoice(label: 'Cancel', value: false),
@@ -487,7 +504,6 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
                       gestures: 'Start on 1 and drag through squares that share a side. Tap the path to remove it.',
                       mistakes: 'Visit the numbers in order. Do not visit a square twice or move diagonally.',
                       lesson: traceTutorial,
-                      onBonusHint: _hint,
                     ),
                     icon: const Icon(Icons.help_outline),
                   ),
@@ -495,7 +511,10 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
                     tooltip: 'Settings',
                     onPressed: () => pushSoft(
                       context,
-                      SettingsPage(activeLevelId: widget.level.id),
+                      SettingsPage(
+                        activeLevelId: widget.level.id,
+                        onResetLevel: _restartFromSettings,
+                      ),
                     ),
                     icon: const Icon(Icons.settings_outlined),
                   ),

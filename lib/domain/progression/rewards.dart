@@ -14,6 +14,9 @@ int masteryXp(Difficulty difficulty, {required bool perfect}) {
   return perfect ? base + (base ~/ 2) : base;
 }
 
+const freeHintsPerPuzzle = 1;
+const skipAllowance = 3;
+
 const weeklyClearBonus = 50;
 const chapterClearBonus = 40;
 
@@ -73,19 +76,22 @@ String completionBody({
   required Difficulty difficulty,
   required int xpGained,
   int? bestMs,
+  bool replay = false,
 }) {
   final perfect = hints == 0;
-  final best = bestMs == null ? '' : ' Best ${_clock(bestMs)}.';
-  final award = xpGained == 0
+  final best = bestMs == null ? '' : ' Best ${clockText(bestMs)}.';
+  final award = xpGained > 0
+      ? ' $xpGained mastery points (${difficulty.label}).'
+      : replay
       ? ' Replaying does not award more points.'
-      : ' $xpGained mastery points for a ${difficulty.label} solve.';
+      : '';
   final hintLine = perfect
       ? 'No hints used.'
       : 'Hints used: $hints. This solve is not perfect.';
   return 'Time $time. $hintLine$award$best';
 }
 
-String _clock(int ms) {
+String clockText(int ms) {
   final total = ms ~/ 1000;
   final minutes = (total ~/ 60).toString().padLeft(2, '0');
   final seconds = (total % 60).toString().padLeft(2, '0');
