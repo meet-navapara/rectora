@@ -158,6 +158,7 @@ class HeroWorldPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: TextStyle(
+          fontFamily: 'Roboto',
           color: color,
           fontSize: 13,
           fontWeight: FontWeight.w700,

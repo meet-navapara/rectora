@@ -14,18 +14,14 @@ copy android\key.properties.example android\key.properties
 Edit `android\key.properties` with the real passwords. Neither file is committed. `flutter build appbundle` refuses to run without it.
 
 ```powershell
-flutter build appbundle --release `
-  --dart-define=RECTORA_REWARDED_AD_UNIT=ca-app-pub-XXXX/XXXX `
-  --dart-define=RECTORA_INTERSTITIAL_AD_UNIT=ca-app-pub-XXXX/XXXX `
-  --dart-define=RECTORA_BANNER_AD_UNIT=ca-app-pub-XXXX/XXXX `
-  -PRECTORA_ADMOB_APP_ID=ca-app-pub-XXXX~XXXX
+flutter build appbundle --release
 ```
 
 Raise the build number in `pubspec.yaml` for every upload. If the version name changes, change `rectoraVersion` in `lib/ui/screens/settings_page.dart` too. A test checks that they match.
 
 ## Ads
 
-Ads appear in every mode: a banner on the chapter, level, daily, and weekly screens, a full-screen ad after every third completed level, and a rewarded ad for a second hint in a puzzle. A release build without real ad units requests no ads at all, and a used hint offers no ad. It never shows Google's sample ads to players. Debug builds use the sample units. To try sample ads in a release build on your own phone, add `--dart-define=RECTORA_TEST_ADS=true`. Never upload that build.
+Ads appear in every mode: a banner on the chapter, level, daily, and weekly screens, a full-screen ad after every third completed level, and a rewarded ad for a second hint in a puzzle. Release builds use the real AdMob ids in `lib/domain/ads/ad_config.dart` and `android/app/build.gradle.kts`. Debug and profile builds use Google's sample units and sample app id, so testing never touches the real ones. Do not tap live ads on your own phone; add it under Test devices in AdMob. To try sample ads in a release build on your own phone, add `--dart-define=RECTORA_TEST_ADS=true`. Never upload that build.
 
 Real units also need the consent message created in AdMob. Settings shows Ad privacy choices when Google says the player's region needs it.
 

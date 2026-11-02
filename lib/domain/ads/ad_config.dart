@@ -1,40 +1,34 @@
+/// Rectora's AdMob units, requested only by release builds.
+const productionRewardedUnitId = 'ca-app-pub-1959480289882936/4277154257';
+const productionInterstitialUnitId = 'ca-app-pub-1959480289882936/1211560107';
+const productionBannerUnitId = 'ca-app-pub-1959480289882936/7521817582';
+
 /// Google's published Android sample ad units.
 ///
-/// These are test ids from Google's AdMob test-ad documentation. They are not
-/// a production monetization setup. Replace them at build time with
-/// `--dart-define=RECTORA_REWARDED_AD_UNIT=...`,
-/// `--dart-define=RECTORA_INTERSTITIAL_AD_UNIT=...`, and
-/// `--dart-define=RECTORA_BANNER_AD_UNIT=...` after an AdMob app exists.
-/// The Android app id is the manifest placeholder `RECTORA_ADMOB_APP_ID`.
+/// Debug and profile builds use these, so testing never touches the real
+/// units. Tapping your own live ads can get an AdMob account suspended.
+/// The Android app id follows the same rule in `android/app/build.gradle.kts`.
 const googleSampleRewardedUnitId = 'ca-app-pub-3940256099942544/5224354917';
 const googleSampleInterstitialUnitId = 'ca-app-pub-3940256099942544/1033173712';
 const googleSampleBannerUnitId = 'ca-app-pub-3940256099942544/9214589741';
 const googleSampleAppId = 'ca-app-pub-3940256099942544~3347511713';
 
-const rewardedAdUnitOverride = String.fromEnvironment(
-  'RECTORA_REWARDED_AD_UNIT',
-);
-const interstitialAdUnitOverride = String.fromEnvironment(
-  'RECTORA_INTERSTITIAL_AD_UNIT',
-);
-const bannerAdUnitOverride = String.fromEnvironment('RECTORA_BANNER_AD_UNIT');
-
-/// Lets a release build on a test device request sample ads.
+/// Lets a release build on a test device request sample ads instead.
 const allowTestAdsInRelease = bool.fromEnvironment('RECTORA_TEST_ADS');
 
-String get rewardedAdUnitId => rewardedAdUnitOverride.isEmpty
-    ? googleSampleRewardedUnitId
-    : rewardedAdUnitOverride;
+const _isRelease = bool.fromEnvironment('dart.vm.product');
 
-String get interstitialAdUnitId => interstitialAdUnitOverride.isEmpty
-    ? googleSampleInterstitialUnitId
-    : interstitialAdUnitOverride;
+/// Whether this build requests the real units.
+const _useProductionUnits = _isRelease && !allowTestAdsInRelease;
 
-String get bannerAdUnitId => bannerAdUnitOverride.isEmpty
-    ? googleSampleBannerUnitId
-    : bannerAdUnitOverride;
+String get rewardedAdUnitId =>
+    _useProductionUnits ? productionRewardedUnitId : googleSampleRewardedUnitId;
 
-bool get usingSampleAdUnits =>
-    rewardedAdUnitId == googleSampleRewardedUnitId &&
-    interstitialAdUnitId == googleSampleInterstitialUnitId &&
-    bannerAdUnitId == googleSampleBannerUnitId;
+String get interstitialAdUnitId => _useProductionUnits
+    ? productionInterstitialUnitId
+    : googleSampleInterstitialUnitId;
+
+String get bannerAdUnitId =>
+    _useProductionUnits ? productionBannerUnitId : googleSampleBannerUnitId;
+
+bool get usingSampleAdUnits => !_useProductionUnits;

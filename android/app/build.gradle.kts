@@ -61,14 +61,13 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Google's sample app id. Pass -PRECTORA_ADMOB_APP_ID for a real app.
-        manifestPlaceholders["admobAppId"] =
-            (project.findProperty("RECTORA_ADMOB_APP_ID") as String?)
-                ?: "ca-app-pub-3940256099942544~3347511713"
+        // Google's sample app id. The release build below uses the real one.
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
     buildTypes {
         release {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-1959480289882936~4213127960"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

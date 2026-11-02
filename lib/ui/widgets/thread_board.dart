@@ -200,6 +200,7 @@ class _ThreadPainter extends CustomPainter {
       text: TextSpan(
         text: label,
         style: TextStyle(
+          fontFamily: 'Roboto',
           color: palette.ink,
           fontWeight: FontWeight.w800,
           fontSize: math.min(metrics.cell * 0.34 * scale, metrics.cell * 0.5),

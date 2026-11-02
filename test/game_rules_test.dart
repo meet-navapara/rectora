@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rectora/app.dart';
@@ -236,9 +238,23 @@ void main() {
     expect(Ads.cadence.sinceInterstitial, 1);
   });
 
-  test('sample ad units stay separate from real ones', () {
+  test('development builds never request the real ad units', () {
     expect(usingSampleAdUnits, isTrue);
+    expect(rewardedAdUnitId, googleSampleRewardedUnitId);
+    expect(interstitialAdUnitId, googleSampleInterstitialUnitId);
     expect(bannerAdUnitId, googleSampleBannerUnitId);
+  });
+
+  test('the real ad units all belong to one AdMob account', () {
+    for (final id in [
+      productionRewardedUnitId,
+      productionInterstitialUnitId,
+      productionBannerUnitId,
+    ]) {
+      expect(id, startsWith('ca-app-pub-1959480289882936/'));
+    }
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
+    expect(gradle, contains('ca-app-pub-1959480289882936~4213127960'));
   });
 
   testWidgets('every browsing screen carries the banner, and takes no space '

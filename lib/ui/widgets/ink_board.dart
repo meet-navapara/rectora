@@ -118,6 +118,7 @@ class _InkPainter extends CustomPainter {
         text: TextSpan(
           text: '${clue.value}',
           style: TextStyle(
+            fontFamily: 'Roboto',
             color: palette.ink,
             fontSize: cell * 0.38,
             fontWeight: FontWeight.w700,

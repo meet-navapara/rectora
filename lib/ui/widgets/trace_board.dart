@@ -133,6 +133,7 @@ class _TracePainter extends CustomPainter {
         text: TextSpan(
           text: '${i + 1}',
           style: TextStyle(
+            fontFamily: 'Roboto',
             color: palette.ink,
             fontSize: cell * 0.32,
             fontWeight: FontWeight.w700,

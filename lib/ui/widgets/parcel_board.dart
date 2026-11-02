@@ -200,6 +200,7 @@ class _ParcelPainter extends CustomPainter {
         text: TextSpan(
           text: '${clue.value}',
           style: TextStyle(
+            fontFamily: 'Roboto',
             color: covered ? numberInk : palette.ink,
             fontSize: math.min(
               metrics.cell * 0.42 * scale,
