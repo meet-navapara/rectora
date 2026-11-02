@@ -49,12 +49,19 @@ class PlayCoach {
 
   GuideStep get step => steps[index];
 
+  /// The lesson is over, by finishing or skipping, and the board is free.
+  bool get finished =>
+      phase == CoachPhase.completed || phase == CoachPhase.skipped;
+
+  /// True while the board waits for the player to read or watch. A finished
+  /// or skipped lesson never locks the board.
   bool get locksInput =>
       phase == CoachPhase.intro ||
       phase == CoachPhase.demonstrating ||
-      phase == CoachPhase.successFeedback ||
-      phase == CoachPhase.completed ||
-      phase == CoachPhase.skipped;
+      phase == CoachPhase.successFeedback;
+
+  /// True while a lesson step limits what may be erased or redrawn.
+  bool get restrictsEditing => !finished && phase != CoachPhase.practice;
 
   bool get expectsMove =>
       phase == CoachPhase.waitingForPlayer ||

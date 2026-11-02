@@ -157,7 +157,7 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
     coach?.hidePointer();
     _pressCell = cell;
     _tapErase = session.path.contains(cell);
-    if (_tapErase && coach != null && coach!.phase != CoachPhase.practice) {
+    if (_tapErase && coach?.restrictsEditing == true) {
       _tapErase = false;
       return;
     }
@@ -614,7 +614,7 @@ class _TracePageState extends State<TracePage> with WidgetsBindingObserver {
                       icon: Icons.lightbulb_outline,
                       onPressed: busy ? null : _hint,
                     ),
-                    if (!solved)
+                    if (!solved && !widget.level.tutorial)
                       PlayTool(
                         label: 'Skip',
                         tooltip: 'Skip this Trace level',

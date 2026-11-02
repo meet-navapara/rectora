@@ -62,53 +62,17 @@ class GuideCard extends StatelessWidget {
           constraints: BoxConstraints(
             maxHeight: MediaQuery.sizeOf(context).height * 0.34,
           ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(title, style: theme.textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(body, style: theme.textTheme.bodyLarge),
-                if (coach.hintText.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    coach.hintText,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: palette.copper,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Skip sits in the title row, so it can never scroll out of view.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 4, 4, 0),
+                child: Row(
                   children: [
-                    if (showContinue)
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: palette.copper,
-                          foregroundColor: palette.copperInk,
-                          minimumSize: const Size(48, 48),
-                        ),
-                        onPressed: onContinue,
-                        child: const Text('Continue'),
-                      ),
-                    if (showHint)
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size(48, 48),
-                        ),
-                        onPressed: onHint,
-                        child: const Text('Show me a hint'),
-                      ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(48, 48),
-                      ),
-                      onPressed: onReplay,
-                      child: const Text('Replay demonstration'),
+                    Expanded(
+                      child: Text(title, style: theme.textTheme.titleMedium),
                     ),
                     TextButton(
                       style: TextButton.styleFrom(
@@ -119,8 +83,61 @@ class GuideCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(body, style: theme.textTheme.bodyLarge),
+                      if (coach.hintText.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          coach.hintText,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: palette.copper,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (showContinue)
+                            FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: palette.copper,
+                                foregroundColor: palette.copperInk,
+                                minimumSize: const Size(48, 48),
+                              ),
+                              onPressed: onContinue,
+                              child: const Text('Continue'),
+                            ),
+                          if (showHint)
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(48, 48),
+                              ),
+                              onPressed: onHint,
+                              child: const Text('Show me a hint'),
+                            ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 48),
+                            ),
+                            onPressed: onReplay,
+                            child: const Text('Replay demonstration'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

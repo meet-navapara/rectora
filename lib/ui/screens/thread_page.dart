@@ -139,7 +139,7 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
     coach?.hidePointer();
     for (final path in session.paths) {
       if (!path.cells.contains(index)) continue;
-      if (coach != null && coach!.phase != CoachPhase.practice) return;
+      if (coach?.restrictsEditing == true) return;
       if (session.erasePair(path.pairIndex)) {
         feedback.tap(RectoraScope.read(context).save.settings);
         setState(() {
@@ -645,7 +645,7 @@ class _ThreadPageState extends State<ThreadPage> with WidgetsBindingObserver {
                         icon: Icons.lightbulb_outline,
                         onPressed: busy ? null : _hint,
                       ),
-                      if (!solved)
+                      if (!solved && !widget.level.tutorial)
                         PlayTool(
                           label: 'Skip',
                           tooltip: 'Skip this puzzle without an ad',

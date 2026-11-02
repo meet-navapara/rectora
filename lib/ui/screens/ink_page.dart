@@ -129,7 +129,7 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
     if (!moving) {
       _holdErase = false;
       if (session.regions.any((region) => region.cells.contains(cell))) {
-        if (coach != null && coach!.phase != CoachPhase.practice) return;
+        if (coach?.restrictsEditing == true) return;
         _holdErase = true;
         if (session.eraseAt(cell)) {
           feedback.tap(RectoraScope.read(context).save.settings);
@@ -602,7 +602,7 @@ class _InkPageState extends State<InkPage> with WidgetsBindingObserver {
                       icon: Icons.lightbulb_outline,
                       onPressed: busy ? null : _hint,
                     ),
-                    if (!solved)
+                    if (!solved && !widget.level.tutorial)
                       PlayTool(
                         label: 'Skip',
                         tooltip: 'Skip this Inks level',

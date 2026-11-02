@@ -54,33 +54,8 @@ class _CampaignPageState extends State<CampaignPage> {
             controller.save.unlocked(mode, ids, pack.levelIds.first))
           chapterKey(mode.name, pack.id),
     ];
-    if (controller.save.seenChapters.isEmpty ||
-        !controller.save.settings.animations ||
-        MediaQuery.disableAnimationsOf(context)) {
-      await controller.seeChapters(open);
-      return;
-    }
-    final fresh = [
-      for (final key in open)
-        if (!controller.save.seenChapters.contains(key)) key,
-    ];
-    if (fresh.isEmpty) return;
-    PackSummary? pack;
-    for (final candidate in packs) {
-      if (chapterKey(mode.name, candidate.id) == fresh.first) {
-        pack = candidate;
-        break;
-      }
-    }
-    if (!mounted || pack == null) return;
-    await showRectoraDialog<bool>(
-      context: context,
-      title: pack.name,
-      body: 'This chapter is open. ${pack.blurb}',
-      choices: const [DialogChoice(label: 'Enter', value: true, primary: true)],
-    );
-    if (!mounted) return;
-    await RectoraScope.read(context).seeChapters(fresh);
+    // The map already shows which chapters are open, so nothing pops up.
+    await controller.seeChapters(open);
   }
 
   List<PackSummary> _packs(RectoraController controller) {

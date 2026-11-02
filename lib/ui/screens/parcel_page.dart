@@ -851,7 +851,10 @@ class _ParcelPageState extends State<ParcelPage> with WidgetsBindingObserver {
                         icon: Icons.lightbulb_outline,
                         onPressed: busy ? null : _hint,
                       ),
-                      if (widget.dailyDate == null && !widget.weekly && !solved)
+                      if (widget.dailyDate == null &&
+                          !widget.weekly &&
+                          !widget.level.tutorial &&
+                          !solved)
                         PlayTool(
                           label: 'Skip',
                           tooltip: 'Skip this level without an ad',

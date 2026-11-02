@@ -4,7 +4,6 @@ import 'package:rectora/domain/common/date_key.dart';
 import 'package:rectora/domain/parcels/models.dart';
 import 'package:rectora/domain/progression/rewards.dart';
 import 'package:rectora/domain/tutorial/home_tour.dart';
-import 'package:rectora/domain/tutorial/progress.dart';
 import 'package:rectora/theme/palette.dart';
 import 'package:rectora/ui/controller.dart';
 import 'package:rectora/ui/home/home_art.dart';
@@ -322,17 +321,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          if (_step == HomeTourStep.off && controller.suggestNextMode)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
-              child: _NextModeOffer(
-                seen: save.tutorialsSeen,
-                onPick: _pickMode,
-                onLater: controller.dismissModeOffer,
-              ),
-            ),
           if (_step != HomeTourStep.off)
             Positioned.fill(
               child: HomeTourOverlay(
@@ -402,78 +390,6 @@ class _TourInvite extends StatelessWidget {
       ),
     );
   }
-}
-
-class _NextModeOffer extends StatelessWidget {
-  const _NextModeOffer({
-    required this.seen,
-    required this.onPick,
-    required this.onLater,
-  });
-
-  final Set<String> seen;
-  final Future<void> Function(PlayMode mode) onPick;
-  final VoidCallback onLater;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = RectoraTheme.of(context);
-    final open = [
-      for (final id in modeLessonIds)
-        if (!tutorialSettled(seen, id)) id,
-    ];
-    if (open.isEmpty) return const SizedBox.shrink();
-    return Material(
-      color: palette.surface,
-      borderRadius: BorderRadius.circular(18),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Learn another mode?',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            const Text('Your progress stays. Pick another guided puzzle.'),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final id in open)
-                  ActionChip(
-                    label: Text(_modeLabel(id)),
-                    onPressed: () => onPick(_modeFor(id)),
-                  ),
-                ActionChip(label: const Text('Not now'), onPressed: onLater),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-String _modeLabel(String id) {
-  return switch (id) {
-    'parcels' => 'Parcels',
-    'trace' => 'Trace',
-    'inks' => 'Inks',
-    'threads' => 'Threads',
-    _ => id,
-  };
-}
-
-PlayMode _modeFor(String id) {
-  return switch (id) {
-    'trace' => PlayMode.trace,
-    'inks' => PlayMode.ink,
-    'threads' => PlayMode.thread,
-    _ => PlayMode.parcel,
-  };
 }
 
 String _focus(RectoraController controller) {

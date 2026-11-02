@@ -150,10 +150,6 @@ void main() {
     await _open(tester, store, _catalog());
     await tester.tap(find.text('Let\'s Begin'));
     await tester.pumpAndSettle();
-    for (var i = 0; i < 6; i++) {
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
-    }
     expect(find.text('Find Your Puzzle Style'), findsOneWidget);
 
     await tester.tap(find.text('Parcels'));

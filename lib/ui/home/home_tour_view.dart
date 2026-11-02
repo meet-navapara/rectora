@@ -25,16 +25,9 @@ enum HomeTourStep {
   choose,
 }
 
-const homeTourSteps = [
-  HomeTourStep.welcome,
-  HomeTourStep.continueJourney,
-  HomeTourStep.modes,
-  HomeTourStep.daily,
-  HomeTourStep.weekly,
-  HomeTourStep.progress,
-  HomeTourStep.help,
-  HomeTourStep.choose,
-];
+/// Kept short: a welcome, then the player picks a mode and goes straight into
+/// its guided first level. The other screens explain themselves.
+const homeTourSteps = [HomeTourStep.welcome, HomeTourStep.choose];
 
 class HomeTourCopy {
   const HomeTourCopy(this.title, this.body);

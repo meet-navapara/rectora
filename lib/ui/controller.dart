@@ -49,7 +49,6 @@ class RectoraController extends ChangeNotifier {
   String? accountMessage;
   bool accountMessageIsError = false;
   var homeTourToken = 0;
-  var suggestNextMode = false;
   bool authBusy = false;
   bool syncBusy = false;
   String? _idToken;
@@ -346,7 +345,6 @@ class RectoraController extends ChangeNotifier {
     final next = save.seeTutorial(id);
     if (identical(next, save)) return;
     save = next;
-    if (isModeLesson(id)) suggestNextMode = true;
     await _persist();
   }
 
@@ -361,7 +359,6 @@ class RectoraController extends ChangeNotifier {
     save = save
         .skipTutorial(homeIntroId)
         .copyWith(onboardingVersion: currentOnboardingVersion);
-    suggestNextMode = false;
     await _persist();
   }
 
@@ -369,11 +366,6 @@ class RectoraController extends ChangeNotifier {
     save = save.forgetTutorial(homeIntroId);
     homeTourToken++;
     await _persist();
-    notifyListeners();
-  }
-
-  void dismissModeOffer() {
-    suggestNextMode = false;
     notifyListeners();
   }
 
