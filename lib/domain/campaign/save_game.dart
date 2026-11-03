@@ -458,12 +458,8 @@ class SaveGame {
     return skipAllowance - open.length;
   }
 
-  bool unlocked(PlayMode mode, List<String> orderedIds, String id) {
-    final index = orderedIds.indexOf(id);
-    if (index <= 0) return index == 0;
-    final previous = recordsFor(mode)[orderedIds[index - 1]];
-    return previous != null && previous.finished;
-  }
+  bool unlocked(PlayMode mode, List<String> orderedIds, String id) =>
+      _open(recordsFor(mode), orderedIds, id);
 
   SaveGame addHints(int count) {
     if (count <= 0) return this;
@@ -528,18 +524,26 @@ class SaveGame {
     );
   }
 
-  bool parcelUnlocked(List<String> orderedIds, String id) {
-    final index = orderedIds.indexOf(id);
-    if (index <= 0) return index == 0;
-    final previous = parcelRecords[orderedIds[index - 1]];
-    return previous != null && previous.finished;
-  }
+  bool parcelUnlocked(List<String> orderedIds, String id) =>
+      _open(parcelRecords, orderedIds, id);
 
-  bool threadUnlocked(List<String> orderedIds, String id) {
+  bool threadUnlocked(List<String> orderedIds, String id) =>
+      _open(threadRecords, orderedIds, id);
+
+  /// A level is open when the one before it is finished, or when the player
+  /// has already finished it or any later level. Progress from an older order
+  /// of levels can leave gaps, and a gap must never lock a level behind it.
+  static bool _open(
+    Map<String, LevelRecord> records,
+    List<String> orderedIds,
+    String id,
+  ) {
     final index = orderedIds.indexOf(id);
     if (index <= 0) return index == 0;
-    final previous = threadRecords[orderedIds[index - 1]];
-    return previous != null && previous.finished;
+    for (var i = index - 1; i < orderedIds.length; i++) {
+      if (records[orderedIds[i]]?.finished == true) return true;
+    }
+    return false;
   }
 
   DerivedStats stats({

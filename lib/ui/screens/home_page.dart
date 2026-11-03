@@ -343,9 +343,13 @@ String _tier(
   List<Difficulty> difficulties,
 ) {
   var best = Difficulty.beginner;
+  // Levels are open up to one past the furthest finished level.
   final records = controller.save.recordsFor(mode);
+  var reach = 0;
   for (var i = 0; i < ids.length; i++) {
-    if (i > 0 && records[ids[i - 1]]?.finished != true) break;
+    if (records[ids[i]]?.finished == true) reach = i + 1;
+  }
+  for (var i = 0; i <= reach && i < ids.length; i++) {
     if (difficulties[i].index > best.index) best = difficulties[i];
   }
   return best.label;

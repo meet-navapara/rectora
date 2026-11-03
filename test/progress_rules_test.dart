@@ -102,6 +102,44 @@ void main() {
     expect(save.skipsLeft(PlayMode.parcel), 1);
   });
 
+  test('a gap in old progress never locks a level that was already passed', () {
+    const ids = [
+      'parcel-001',
+      'parcel-002',
+      'parcel-003',
+      'parcel-004',
+      'parcel-005',
+    ];
+    var save = SaveGame.fresh();
+    for (final id in ['parcel-001', 'parcel-004']) {
+      save = save.finishLevel(
+        id: id,
+        skipped: false,
+        hintsUsed: 0,
+        elapsedMs: 1,
+      );
+    }
+    expect(save.parcelUnlocked(ids, 'parcel-002'), isTrue);
+    expect(save.parcelUnlocked(ids, 'parcel-003'), isTrue);
+    expect(save.parcelUnlocked(ids, 'parcel-004'), isTrue);
+    expect(save.parcelUnlocked(ids, 'parcel-005'), isTrue);
+    expect(save.unlocked(PlayMode.trace, ids, 'parcel-002'), isFalse);
+  });
+
+  test('a fresh campaign still opens one level at a time', () {
+    const ids = ['parcel-001', 'parcel-002', 'parcel-003'];
+    var save = SaveGame.fresh();
+    expect(save.parcelUnlocked(ids, 'parcel-002'), isFalse);
+    save = save.finishLevel(
+      id: 'parcel-001',
+      skipped: false,
+      hintsUsed: 0,
+      elapsedMs: 1,
+    );
+    expect(save.parcelUnlocked(ids, 'parcel-002'), isTrue);
+    expect(save.parcelUnlocked(ids, 'parcel-003'), isFalse);
+  });
+
   test('progress unlocks, replays, skips, and restarts stay consistent', () {
     var save = SaveGame.fresh().markStarted(thread: false, id: 'parcel-001');
     save = save.finishLevel(
