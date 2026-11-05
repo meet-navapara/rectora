@@ -93,9 +93,26 @@ class _TracePainter extends CustomPainter {
       ..color = palette.line
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
+    final closed = puzzle.blocked.toSet();
+    final closedFill = Paint()..color = palette.surface;
+    final cross = Paint()
+      ..color = palette.muted
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = cell * 0.06;
     for (var row = 0; row < puzzle.rows; row++) {
       for (var col = 0; col < puzzle.cols; col++) {
         final rect = Rect.fromLTWH(col * cell, row * cell, cell, cell);
+        if (closed.contains(puzzle.index(row, col))) {
+          // A closed square is not part of the route: draw it sunk and
+          // crossed out so nobody mistakes it for a square left to fill.
+          canvas.drawRect(rect.deflate(1), closedFill);
+          canvas.drawRect(rect.deflate(1), line);
+          final mark = rect.deflate(cell * 0.3);
+          canvas.drawLine(mark.topLeft, mark.bottomRight, cross);
+          canvas.drawLine(mark.topRight, mark.bottomLeft, cross);
+          continue;
+        }
         canvas.drawRect(rect.deflate(1), fill);
         canvas.drawRect(rect.deflate(1), line);
       }

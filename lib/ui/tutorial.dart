@@ -78,7 +78,8 @@ const traceTutorial = [
   ),
   TutorialStep(
     'Cover every open square',
-    'The path is finished when every open square is on it.',
+    'The path is finished when every open square is on it. '
+        'A crossed-out square is closed: leave it empty.',
     example: 'trace-cover',
     wait: TutorialWait.solved,
   ),
